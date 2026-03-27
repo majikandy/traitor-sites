@@ -7,6 +7,7 @@ return [
     'contact_email' => 'hello@toptoast.com',
     'phone' => '',
     'tagline' => 'Toast. Elevated.',
+    'version' => '2026.03.27.1808',
     'nav' => [
         '/' => 'Home',
         '/recipes.php' => 'Recipes',
