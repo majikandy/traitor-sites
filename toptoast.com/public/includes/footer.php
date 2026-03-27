@@ -25,6 +25,7 @@
             </div>
             <div class="footer-bottom">
                 <p>&copy; <?= date('Y') ?> <?= htmlspecialchars($config['site_name']) ?>. All rights reserved. Made with bread &amp; butter.</p>
+                <p class="footer-version">v<?= htmlspecialchars($config['version']) ?></p>
             </div>
         </div>
     </footer>
