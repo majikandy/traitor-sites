@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Checkout - Facemaker Pottery</title>
+  <style>
+    body { font-family: Georgia, serif; max-width: 800px; margin: 0 auto; padding: 20px; background: #f5f0eb; color: #333; }
+    nav { background: #8b5e3c; padding: 12px 20px; border-radius: 6px; margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between; }
+    nav .nav-left a { color: white; text-decoration: none; margin-right: 20px; font-size: 1.1em; }
+    nav .nav-left a:hover { text-decoration: underline; }
+    nav .basket-link { color: white; text-decoration: none; font-size: 1.1em; }
+    h1 { color: #8b5e3c; }
+    .layout { display: grid; grid-template-columns: 1fr 320px; gap: 30px; align-items: start; }
+    .form-box { background: white; border-radius: 8px; padding: 28px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .form-box h2 { color: #8b5e3c; margin-top: 0; font-size: 1.1em; border-bottom: 1px solid #f0e8e0; padding-bottom: 10px; margin-bottom: 18px; }
+    label { display: block; font-size: 0.9em; color: #555; margin-bottom: 4px; margin-top: 14px; }
+    label:first-of-type { margin-top: 0; }
+    input, textarea { width: 100%; box-sizing: border-box; padding: 9px 12px; border: 1px solid #ccc; border-radius: 4px; font-family: Georgia, serif; font-size: 0.95em; background: #faf8f5; }
+    input:focus, textarea:focus { outline: none; border-color: #8b5e3c; }
+    .card-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .submit-btn { width: 100%; background: #8b5e3c; color: white; padding: 13px; border-radius: 4px; border: none; cursor: pointer; font-family: Georgia, serif; font-size: 1.05em; margin-top: 22px; }
+    .submit-btn:hover { background: #6d4a2e; }
+    .order-summary { background: white; border-radius: 8px; padding: 24px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .order-summary h2 { color: #8b5e3c; margin-top: 0; font-size: 1.1em; border-bottom: 1px solid #f0e8e0; padding-bottom: 10px; margin-bottom: 14px; }
+    .summary-item { display: flex; justify-content: space-between; font-size: 0.95em; padding: 6px 0; border-bottom: 1px solid #f8f3ee; }
+    .summary-item:last-of-type { border-bottom: none; }
+    .summary-total { display: flex; justify-content: space-between; font-weight: bold; font-size: 1.1em; color: #8b5e3c; margin-top: 14px; padding-top: 12px; border-top: 2px solid #f0e8e0; }
+    .empty-warning { color: #888; font-size: 0.9em; }
+    .empty-warning a { color: #8b5e3c; }
+    /* Confirmation screen */
+    .confirmation { display: none; text-align: center; background: white; border-radius: 8px; padding: 50px 30px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .confirmation .tick { font-size: 4em; margin-bottom: 10px; }
+    .confirmation h2 { color: #4a7c3f; font-size: 1.8em; margin-bottom: 10px; }
+    .confirmation p { color: #666; font-size: 1.05em; line-height: 1.7; }
+    .confirmation a { color: #8b5e3c; }
+    .fake-notice { font-size: 0.8em; color: #aaa; margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="nav-left">
+      <a href="index.html">Home</a>
+      <a href="shop.html">Shop</a>
+      <a href="about.html">About</a>
+    </div>
+    <a href="basket.html" class="basket-link">&#x1F6D2; Basket</a>
+  </nav>
+
+  <h1>Checkout</h1>
+
+  <div id="main-content">
+    <div class="layout">
+      <div>
+        <form class="form-box" id="checkout-form">
+          <h2>Your details</h2>
+          <label>Full name</label>
+          <input type="text" placeholder="Jo Marsh" required>
+          <label>Email</label>
+          <input type="email" placeholder="jo@example.com" required>
+          <label>Address</label>
+          <textarea rows="3" placeholder="1 The Potters Yard, Much Wenlock, Shropshire" required></textarea>
+          <label>Postcode</label>
+          <input type="text" placeholder="TF13 6AA" required>
+
+          <h2 style="margin-top:24px;">Payment</h2>
+          <p class="fake-notice">&#x1F512; This is a demo — no real payment is taken.</p>
+          <label>Card number</label>
+          <input type="text" placeholder="4242 4242 4242 4242" maxlength="19">
+          <div class="card-row">
+            <div>
+              <label>Expiry</label>
+              <input type="text" placeholder="MM/YY" maxlength="5">
+            </div>
+            <div>
+              <label>CVV</label>
+              <input type="text" placeholder="123" maxlength="3">
+            </div>
+          </div>
+
+          <button type="submit" class="submit-btn">Place order</button>
+        </form>
+      </div>
+
+      <div class="order-summary" id="order-summary">
+        <h2>Order summary</h2>
+        <div id="summary-items"></div>
+        <div class="summary-total">
+          <span>Total</span>
+          <span id="summary-total"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="confirmation" id="confirmation">
+    <div class="tick">&#x2705;</div>
+    <h2>Order placed!</h2>
+    <p>Thank you for your order. Jo will start making your faces immediately.<br>
+    You'll receive a confirmation at the email you provided.<br>
+    Dispatch within 5 working days.</p>
+    <p style="margin-top:30px;"><a href="shop.html">← Back to shop</a></p>
+  </div>
+
+  <script>
+    function getBasket() {
+      return JSON.parse(sessionStorage.getItem('basket') || '[]');
+    }
+
+    const basket = getBasket();
+    const summaryItems = document.getElementById('summary-items');
+    const summaryTotal = document.getElementById('summary-total');
+
+    if (basket.length === 0) {
+      summaryItems.innerHTML = '<p class="empty-warning">Your basket is empty. <a href="shop.html">Go shopping</a>.</p>';
+      summaryTotal.textContent = '£0';
+    } else {
+      const total = basket.reduce((sum, i) => sum + i.price * i.qty, 0);
+      summaryItems.innerHTML = basket.map(i =>
+        `<div class="summary-item"><span>${i.name} × ${i.qty}</span><span>£${i.price * i.qty}</span></div>`
+      ).join('');
+      summaryTotal.textContent = '£' + total;
+    }
+
+    document.getElementById('checkout-form').addEventListener('submit', e => {
+      e.preventDefault();
+      sessionStorage.removeItem('basket');
+      document.getElementById('main-content').style.display = 'none';
+      document.getElementById('confirmation').style.display = 'block';
+    });
+  </script>
+</body>
+</html>

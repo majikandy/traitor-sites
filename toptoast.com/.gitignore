@@ -1,0 +1,22 @@
+# Portal
+portal/vendor/
+portal/node_modules/
+portal/.env
+portal/storage/*.key
+portal/storage/logs/
+portal/bootstrap/cache/
+
+# Sites - customer sites live on disk, NOT in this repo
+# The portal manages them at a configurable path (SITES_PATH in .env)
+# The demo site is kept as a template reference only
+/sites/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>About - Facemaker Pottery</title>
+  <style>
+    body { font-family: Georgia, serif; max-width: 800px; margin: 0 auto; padding: 20px; background: #f5f0eb; color: #333; }
+    nav { background: #8b5e3c; padding: 12px 20px; border-radius: 6px; margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between; }
+    nav .nav-left a { color: white; text-decoration: none; margin-right: 20px; font-size: 1.1em; }
+    nav .nav-left a:hover { text-decoration: underline; }
+    nav .basket-link { color: white; text-decoration: none; font-size: 1.1em; }
+    nav .basket-link:hover { text-decoration: underline; }
+    .basket-count { background: #f5c842; color: #333; border-radius: 50%; padding: 1px 7px; font-size: 0.8em; font-weight: bold; margin-left: 4px; display: none; }
+    .basket-count.visible { display: inline; }
+    h1 { color: #8b5e3c; }
+    p { line-height: 1.7; font-size: 1.05em; }
+    .contact { background: white; border-radius: 8px; padding: 20px 30px; margin-top: 30px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .contact h2 { color: #8b5e3c; margin-top: 0; }
+    a { color: #8b5e3c; }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="nav-left">
+      <a href="index.html">Home</a>
+      <a href="shop.html">Shop</a>
+      <a href="about.html">About</a>
+    </div>
+    <a href="basket.html" class="basket-link">&#x1F6D2; Basket<span class="basket-count" id="basket-count"></span></a>
+  </nav>
+  <script>
+    (function() {
+      var basket = JSON.parse(sessionStorage.getItem('basket') || '[]');
+      var total = basket.reduce(function(s, i) { return s + i.qty; }, 0);
+      if (total > 0) {
+        var el = document.getElementById('basket-count');
+        el.textContent = total;
+        el.className = 'basket-count visible';
+      }
+    })();
+  </script>
+  <h1>About Facemaker</h1>
+  <p>Facemaker was started in 2018 by potter Jo Marsh in a small studio in rural Shropshire. What began as an obsession with human expression in clay has grown into a full range of ceramic wall faces, each one thrown, sculpted and glazed entirely by hand.</p>
+  <p>No two faces are alike. Variations in glaze, texture and expression are part of the charm — and the point. We use locally sourced stoneware, earthenware and porcelain clays, fired in a wood kiln twice a year and a smaller electric kiln for smaller runs.</p>
+  <p>All faces are suitable for indoor and sheltered outdoor display. Orders are dispatched within 5 working days, packaged in recycled materials.</p>
+  <div class="contact">
+    <h2>Get in touch</h2>
+    <p>Email: <a href="mailto:hello@facemakerpottery.co.uk">hello@facemakerpottery.co.uk</a></p>
+    <p>Studio visits by appointment — we're in Much Wenlock, Shropshire.</p>
+    <p><a href="shop.html">Browse the shop &rarr;</a></p>
+  </div>
+</body>
+</html>

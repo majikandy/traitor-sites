@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Facemaker Pottery</title>
+  <style>
+    body { font-family: Georgia, serif; max-width: 800px; margin: 0 auto; padding: 20px; background: #f5f0eb; color: #333; }
+    nav { background: #8b5e3c; padding: 12px 20px; border-radius: 6px; margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between; }
+    nav .nav-left a { color: white; text-decoration: none; margin-right: 20px; font-size: 1.1em; }
+    nav .nav-left a:hover { text-decoration: underline; }
+    nav .basket-link { color: white; text-decoration: none; font-size: 1.1em; }
+    nav .basket-link:hover { text-decoration: underline; }
+    .basket-count { background: #f5c842; color: #333; border-radius: 50%; padding: 1px 7px; font-size: 0.8em; font-weight: bold; margin-left: 4px; display: none; }
+    .basket-count.visible { display: inline; }
+    h1 { color: #8b5e3c; font-size: 2.5em; }
+    .hero { text-align: center; padding: 40px 0; }
+    .hero p { font-size: 1.2em; color: #555; }
+    .cta { display: inline-block; background: #8b5e3c; color: white; padding: 12px 28px; border-radius: 4px; text-decoration: none; margin-top: 20px; font-size: 1.1em; }
+    .cta:hover { background: #6d4a2e; }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="nav-left">
+      <a href="index.html">Home</a>
+      <a href="shop.html">Shop</a>
+      <a href="about.html">About</a>
+    </div>
+    <a href="basket.html" class="basket-link">&#x1F6D2; Basket<span class="basket-count" id="basket-count"></span></a>
+  </nav>
+  <script>
+    (function() {
+      var basket = JSON.parse(sessionStorage.getItem('basket') || '[]');
+      var total = basket.reduce(function(s, i) { return s + i.qty; }, 0);
+      if (total > 0) {
+        var el = document.getElementById('basket-count');
+        el.textContent = total;
+        el.className = 'basket-count visible';
+      }
+    })();
+  </script>
+  <div class="hero">
+    <h1>Facemaker Pottery</h1>
+    <p>Handcrafted ceramic faces, made with love in our studio.</p>
+    <p>Each piece is unique, fired in a wood kiln and finished by hand.</p>
+    <a href="shop.html" class="cta">Browse the Shop</a>
+  </div>
+</body>
+</html>
