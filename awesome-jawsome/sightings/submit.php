@@ -64,7 +64,7 @@ require '../includes/header.php';
     <?php if ($success): ?>
     <div class="alert alert-success">
         ✅ Your sighting has been logged! Thank you for contributing to the Awesome Jawsome database.
-        <br><a href="index.php" style="color:inherit; font-weight:700;">← Browse all sightings</a>
+        <br><a href="/sightings/" style="color:inherit; font-weight:700;">← Browse all sightings</a>
     </div>
     <?php endif; ?>
 
@@ -77,7 +77,7 @@ require '../includes/header.php';
     <?php endif; ?>
 
     <?php if (!$success): ?>
-    <form method="POST" action="submit.php">
+    <form method="POST" action="/sightings/submit">
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.25rem;">
             <div class="form-group">
                 <label for="reporter">Your Name / Handle</label>

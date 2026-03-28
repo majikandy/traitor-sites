@@ -30,9 +30,9 @@ $speciesBadge = [
     <h1>Awesome <span>Jawsome</span></h1>
     <p>The world's most dedicated community for shark encounter reports, specimen spotting, and ocean adventure stories.</p>
     <br>
-    <a href="sightings/submit.php" class="btn btn-primary">Report a Sighting</a>
+    <a href="/sightings/submit" class="btn btn-primary">Report a Sighting</a>
     &nbsp;
-    <a href="sightings/index.php" class="btn btn-outline">Browse Reports</a>
+    <a href="/sightings/" class="btn btn-outline">Browse Reports</a>
 </div>
 
 <main>
@@ -64,7 +64,7 @@ $speciesBadge = [
         <div style="font-size:4rem; margin-bottom:1rem;">🦈</div>
         <h3>The ocean is quiet... for now.</h3>
         <p style="margin:0.75rem 0 1.25rem;">No sightings have been reported yet. Be the first to spot something jaw-dropping!</p>
-        <a href="sightings/submit.php" class="btn btn-primary">Report the First Sighting</a>
+        <a href="/sightings/submit" class="btn btn-primary">Report the First Sighting</a>
     </div>
     <?php else: ?>
     <div class="card-grid">
@@ -84,7 +84,7 @@ $speciesBadge = [
         <?php endforeach; ?>
     </div>
     <div style="margin-top:1.5rem; text-align:center;">
-        <a href="sightings/index.php" class="btn btn-outline">View All Sightings →</a>
+        <a href="/sightings/" class="btn btn-outline">View All Sightings →</a>
     </div>
     <?php endif; ?>
 
@@ -96,19 +96,19 @@ $speciesBadge = [
             <div style="font-size:2.5rem; margin-bottom:0.75rem;">📡</div>
             <h3>Submit a Report</h3>
             <p>Witnessed something fin-tastic? Fill out our quick sighting form and join hundreds of ocean spotters logging encounters in real time.</p>
-            <a href="sightings/submit.php" class="read-more">Report now →</a>
+            <a href="/sightings/submit" class="read-more">Report now →</a>
         </div>
         <div class="card">
             <div style="font-size:2.5rem; margin-bottom:0.75rem;">🖼️</div>
             <h3>Species Gallery</h3>
             <p>From the mighty Great White to the gentle Whale Shark, explore our illustrated guide to the apex predators of the deep.</p>
-            <a href="gallery/index.php" class="read-more">Open gallery →</a>
+            <a href="/gallery/" class="read-more">Open gallery →</a>
         </div>
         <div class="card">
             <div style="font-size:2.5rem; margin-bottom:0.75rem;">🌊</div>
             <h3>About the Project</h3>
             <p>Awesome Jawsome started as a dive-boat chat log in 2019. Today it's a global network of divers, surfers, and ocean scientists.</p>
-            <a href="about/index.php" class="read-more">Our story →</a>
+            <a href="/about/" class="read-more">Our story →</a>
         </div>
     </div>
 </main>

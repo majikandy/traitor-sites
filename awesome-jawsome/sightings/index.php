@@ -43,7 +43,7 @@ require '../includes/header.php';
     <!-- Filter bar -->
     <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:2rem; align-items:center;">
         <span style="color:var(--muted); font-size:0.9rem; margin-right:0.25rem;">Filter by species:</span>
-        <a href="index.php" class="btn <?= !$filterSpecies ? 'btn-primary' : 'btn-outline' ?>" style="padding:0.35rem 0.9rem; font-size:0.85rem;">All</a>
+        <a href="/sightings/" class="btn <?= !$filterSpecies ? 'btn-primary' : 'btn-outline' ?>" style="padding:0.35rem 0.9rem; font-size:0.85rem;">All</a>
         <?php foreach ($speciesList as $sp): ?>
         <a href="?species=<?= urlencode($sp) ?>"
            class="btn <?= $filterSpecies === $sp ? 'btn-primary' : 'btn-outline' ?>"
@@ -56,7 +56,7 @@ require '../includes/header.php';
         <div style="font-size:4rem; margin-bottom:1rem;">🦈</div>
         <h3>No sightings found<?= $filterSpecies ? " for \"$filterSpecies\"" : '' ?>.</h3>
         <p style="margin:0.75rem 0 1.25rem; color:var(--muted);">Be the first to report an encounter!</p>
-        <a href="submit.php" class="btn btn-primary">Report a Sighting</a>
+        <a href="/sightings/submit" class="btn btn-primary">Report a Sighting</a>
     </div>
     <?php else: ?>
     <div style="color:var(--muted); font-size:0.9rem; margin-bottom:1.25rem;">
@@ -99,7 +99,7 @@ require '../includes/header.php';
 
     <hr class="divider">
     <div style="text-align:center;">
-        <a href="submit.php" class="btn btn-primary">+ Report a New Sighting</a>
+        <a href="/sightings/submit" class="btn btn-primary">+ Report a New Sighting</a>
     </div>
 </main>
 

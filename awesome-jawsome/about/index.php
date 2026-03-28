@@ -95,9 +95,9 @@ $milestones = [
     <div class="card" style="text-align:center; padding:2rem;">
         <h3 style="margin-bottom:0.5rem;">Ready to contribute?</h3>
         <p style="color:var(--muted); margin-bottom:1.25rem;">Every sighting report, however brief, adds to the scientific record.</p>
-        <a href="../sightings/submit.php" class="btn btn-primary">Log a Sighting</a>
+        <a href="/sightings/submit" class="btn btn-primary">Log a Sighting</a>
         &nbsp;
-        <a href="../sightings/index.php" class="btn btn-outline">Browse Reports</a>
+        <a href="/sightings/" class="btn btn-outline">Browse Reports</a>
     </div>
 
 </main>

@@ -214,13 +214,13 @@ $root = $depth > 0 ? str_repeat('../', $depth) : './';
 <body>
 <header>
     <div class="nav-inner">
-        <a class="logo" href="<?= $root ?>index.php">Awesome <span>Jawsome</span></a>
+        <a class="logo" href="/">Awesome <span>Jawsome</span></a>
         <nav>
-            <a href="<?= $root ?>index.php">Home</a>
-            <a href="<?= $root ?>sightings/index.php">Sightings</a>
-            <a href="<?= $root ?>sightings/submit.php">Report</a>
-            <a href="<?= $root ?>gallery/index.php">Gallery</a>
-            <a href="<?= $root ?>about/index.php">About</a>
+            <a href="/">Home</a>
+            <a href="/sightings/">Sightings</a>
+            <a href="/sightings/submit">Report</a>
+            <a href="/gallery/">Gallery</a>
+            <a href="/about/">About</a>
         </nav>
     </div>
 </header>

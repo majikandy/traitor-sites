@@ -145,7 +145,7 @@ $sharks = [
 
             <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.82rem; color:var(--muted);">
                 <span>🦈 <?= $shark['sightings_count'] ?> community reports</span>
-                <a href="../sightings/index.php?species=<?= urlencode($shark['name']) ?>" class="read-more" style="font-size:0.82rem;">See reports →</a>
+                <a href="/sightings/?species=<?= urlencode($shark['name']) ?>" class="read-more" style="font-size:0.82rem;">See reports →</a>
             </div>
         </div>
         <?php endforeach; ?>
@@ -156,7 +156,7 @@ $sharks = [
     <div class="card" style="text-align:center; padding:2rem;">
         <h3 style="margin-bottom:0.5rem;">Spotted a species not in the gallery?</h3>
         <p style="color:var(--muted); margin-bottom:1.25rem;">Log your encounter and help us expand the database.</p>
-        <a href="../sightings/submit.php" class="btn btn-primary">Report a Sighting</a>
+        <a href="/sightings/submit" class="btn btn-primary">Report a Sighting</a>
     </div>
 </main>
 
