@@ -1,7 +1,7 @@
 <?php
-$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
-$depth = substr_count(trim($_SERVER['SCRIPT_NAME'], '/'), '/') - 1;
-$root = $depth > 0 ? str_repeat('../', $depth) : './';
+$root = '/';
+$_sightingsDir = __DIR__ . '/../data/sightings/';
+$_sightingsCount = is_dir($_sightingsDir) ? count(glob($_sightingsDir . '*.json') ?: []) : 0;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -67,6 +67,18 @@ $root = $depth > 0 ? str_repeat('../', $depth) : './';
             transition: color 0.2s;
         }
         nav a:hover, nav a.active { color: var(--accent); }
+        .nav-count {
+            display: inline-block;
+            background: var(--accent);
+            color: var(--deep);
+            font-size: 0.7rem;
+            font-weight: 800;
+            border-radius: 10px;
+            padding: 1px 6px;
+            margin-left: 4px;
+            vertical-align: middle;
+            line-height: 1.5;
+        }
 
         /* ---- HERO / PAGE HEADER ---- */
         .hero {
@@ -217,7 +229,7 @@ $root = $depth > 0 ? str_repeat('../', $depth) : './';
         <a class="logo" href="/">Awesome <span>Jawsome</span></a>
         <nav>
             <a href="/">Home</a>
-            <a href="/sightings/">Sightings</a>
+            <a href="/sightings/">Sightings<span class="nav-count"><?= $_sightingsCount ?></span></a>
             <a href="/sightings/submit">Report</a>
             <a href="/gallery/">Gallery</a>
             <a href="/about/">About</a>
