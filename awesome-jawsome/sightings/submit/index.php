@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (strlen($description) < 20)               $errors[] = 'Description must be at least 20 characters.';
 
     if (empty($errors)) {
-        $dataDir = dirname(__DIR__) . '/data/sightings/';
+        $dataDir = dirname(__DIR__, 2) . '/data/sightings/';
         if (!is_dir($dataDir)) {
             mkdir($dataDir, 0755, true);
         }
@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-require '../includes/header.php';
+require '../../includes/header.php';
 ?>
 
 <div class="hero" style="padding:2.5rem 2rem;">
@@ -238,4 +238,4 @@ function randomSighting() {
 }
 </script>
 
-<?php require '../includes/footer.php'; ?>
+<?php require '../../includes/footer.php'; ?>
