@@ -506,10 +506,11 @@ function saveGallery(triggerBtn, gid, folder, total, gurl) {
         text.textContent = 'Failed after ' + MAX_RETRIES + ' retries.';
         triggerBtn.disabled = false;
       }
-    }
+    };
+  }  // end connect()
 
-    connect();
-}
+  connect();
+}  // end saveGallery()
 </script>
 
 <!-- Global progress bar (fixed bottom) -->
