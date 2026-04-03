@@ -91,6 +91,9 @@ if (isset($_GET['action']) && $_GET['action'] === 'save') {
     $total  = (int)($_GET['total']  ?? 0);
     $gurl   = $_GET['gurl'] ?? '';
 
+    set_time_limit(0);
+    ignore_user_abort(false);
+
     header('Content-Type: text/event-stream');
     header('Cache-Control: no-cache');
     header('X-Accel-Buffering: no');
@@ -370,7 +373,10 @@ $galleries  = saved_galleries();
       $folder = $preview['folder'];
       $total  = $preview['total'];
       $gurl   = urlencode($preview['url']);
-      $already_saved = is_dir(galleries_dir() . "/{$gid}");
+      $dir           = galleries_dir() . "/{$gid}";
+      $saved_count   = is_dir($dir) ? count(glob("$dir/*.webp") ?: []) : 0;
+      $complete      = $saved_count >= $total;
+      $partial       = $saved_count > 0 && !$complete;
     ?>
     <div class="result">
       <h2>Gallery found</h2>
@@ -378,14 +384,17 @@ $galleries  = saved_galleries();
         <div><span>Gallery ID: </span><strong><?= $gid ?></strong></div>
         <div><span>Total photos: </span><strong><?= $total ?></strong></div>
         <div><span>Resolution: </span><strong>2560 px (max)</strong></div>
+        <?php if ($saved_count > 0): ?>
+          <div><span>Saved locally: </span><strong><?= $saved_count ?> / <?= $total ?></strong></div>
+        <?php endif; ?>
       </div>
 
       <div style="margin-top:1rem; display:flex; gap:.5rem; flex-wrap:wrap;">
         <button class="btn btn-green" id="save-btn"
           onclick="saveGallery(<?= $gid ?>, <?= $folder ?>, <?= $total ?>, '<?= $gurl ?>')">
-          <?= $already_saved ? 'Re-download' : 'Save Gallery' ?>
+          <?= $complete ? 'Re-download' : ($partial ? "Resume ({$saved_count}/{$total})" : 'Save Gallery') ?>
         </button>
-        <?php if ($already_saved): ?>
+        <?php if ($saved_count > 0): ?>
           <a href="gallery.php?gid=<?= $gid ?>" class="btn btn-primary" style="margin-top:1rem;">
             View Gallery
           </a>
@@ -440,35 +449,48 @@ function saveGallery(gid, folder, total, gurl) {
   btn.disabled = true;
   wrap.classList.add('active');
 
-  const url = `?action=save&gid=${gid}&folder=${folder}&total=${total}&gurl=${gurl}`;
-  const es  = new EventSource(url);
+  let retries = 0;
+  const MAX_RETRIES = 10;
 
-  es.onmessage = (e) => {
-    const d = JSON.parse(e.data);
-    if (d.error) {
-      text.textContent = 'Error: ' + d.error;
-      es.close();
-      btn.disabled = false;
-      return;
-    }
-    if (d.done) {
-      bar.style.width = '100%';
-      bar.classList.add('done');
-      text.textContent = 'Done! Redirecting…';
-      es.close();
-      setTimeout(() => { window.location = `gallery.php?gid=${gid}`; }, 800);
-      return;
-    }
-    const pct = Math.round((d.n / d.total) * 100);
-    bar.style.width = pct + '%';
-    countEl.textContent = d.n + ' / ' + d.total;
-  };
+  function connect() {
+    const url = `?action=save&gid=${gid}&folder=${folder}&total=${total}&gurl=${gurl}`;
+    const es  = new EventSource(url);
 
-  es.onerror = () => {
-    text.textContent = 'Connection error.';
-    es.close();
-    btn.disabled = false;
-  };
+    es.onmessage = (e) => {
+      retries = 0; // reset on successful message
+      const d = JSON.parse(e.data);
+      if (d.error) {
+        text.textContent = 'Error: ' + d.error;
+        es.close();
+        btn.disabled = false;
+        return;
+      }
+      if (d.done) {
+        bar.style.width = '100%';
+        bar.classList.add('done');
+        text.textContent = 'Done! Redirecting…';
+        es.close();
+        setTimeout(() => { window.location = `gallery.php?gid=${gid}`; }, 800);
+        return;
+      }
+      const pct = Math.round((d.n / d.total) * 100);
+      bar.style.width = pct + '%';
+      countEl.textContent = d.n + ' / ' + d.total;
+    };
+
+    es.onerror = () => {
+      es.close();
+      if (retries < MAX_RETRIES) {
+        retries++;
+        text.textContent = `Reconnecting… (attempt ${retries})`;
+        setTimeout(connect, 1500);
+      } else {
+        text.textContent = 'Failed after ' + MAX_RETRIES + ' retries.';
+        btn.disabled = false;
+      }
+    }
+
+    connect();
 }
 </script>
 </body>
