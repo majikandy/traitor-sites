@@ -45,7 +45,10 @@ function saved_galleries(): array
     $out = [];
     foreach (glob("$dir/*/meta.json") ?: [] as $f) {
         $meta = json_decode(file_get_contents($f), true);
-        if ($meta) $out[] = $meta;
+        if (!$meta) continue;
+        $gdir = dirname($f);
+        $meta['saved_count'] = count(glob("$gdir/*.webp") ?: []);
+        $out[] = $meta;
     }
     usort($out, fn($a, $b) => strcmp($b['saved_at'] ?? '', $a['saved_at'] ?? ''));
     return $out;
@@ -281,22 +284,29 @@ $galleries  = saved_galleries();
     border-radius: 6px;
     background: #222;
   }
-  /* Progress */
-  .progress-wrap { display: none; margin-top: 1rem; }
+  /* Progress — fixed bar at bottom of viewport */
+  .progress-wrap {
+    display: none;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: #111;
+    border-top: 1px solid #2a2a2a;
+    padding: .6rem 1.25rem;
+    z-index: 50;
+  }
   .progress-wrap.active { display: block; }
   .progress-label {
     font-size: .8rem;
     color: #9ca3af;
-    margin-bottom: .4rem;
+    margin-bottom: .35rem;
     display: flex;
     justify-content: space-between;
   }
   .progress-track {
-    background: #111;
+    background: #222;
     border-radius: 99px;
-    height: 8px;
+    height: 6px;
     overflow: hidden;
-    border: 1px solid #333;
   }
   .progress-bar {
     height: 100%;
@@ -390,8 +400,8 @@ $galleries  = saved_galleries();
       </div>
 
       <div style="margin-top:1rem; display:flex; gap:.5rem; flex-wrap:wrap;">
-        <button class="btn btn-green" id="save-btn"
-          onclick="saveGallery(<?= $gid ?>, <?= $folder ?>, <?= $total ?>, '<?= $gurl ?>')">
+        <button class="btn btn-green"
+          onclick="saveGallery(this, <?= $gid ?>, <?= $folder ?>, <?= $total ?>, '<?= $gurl ?>')">
           <?= $complete ? 'Re-download' : ($partial ? "Resume ({$saved_count}/{$total})" : 'Save Gallery') ?>
         </button>
         <?php if ($saved_count > 0): ?>
@@ -399,16 +409,6 @@ $galleries  = saved_galleries();
             View Gallery
           </a>
         <?php endif; ?>
-      </div>
-
-      <div class="progress-wrap" id="progress-wrap">
-        <div class="progress-label">
-          <span id="progress-text">Saving images…</span>
-          <span id="progress-count">0 / <?= $total ?></span>
-        </div>
-        <div class="progress-track">
-          <div class="progress-bar" id="progress-bar"></div>
-        </div>
       </div>
 
       <div class="preview-grid">
@@ -424,29 +424,47 @@ $galleries  = saved_galleries();
 <?php if ($galleries): ?>
   <p class="section-title">Saved Galleries</p>
   <div class="galleries-grid">
-    <?php foreach ($galleries as $g): ?>
-      <?php $thumb_n = 1; ?>
-      <a href="gallery.php?gid=<?= $g['gid'] ?>" class="gallery-card">
-        <img src="?img=1&gid=<?= $g['gid'] ?>&folder=<?= $g['folder'] ?>&n=<?= $thumb_n ?>&size=800"
-             alt="Gallery <?= $g['gid'] ?>" loading="lazy">
+    <?php foreach ($galleries as $g):
+      $g_saved  = (int)$g['saved_count'];
+      $g_total  = (int)$g['total'];
+      $g_partial = $g_saved > 0 && $g_saved < $g_total;
+      $g_gurl   = urlencode($g['url'] ?? '');
+    ?>
+      <div class="gallery-card">
+        <a href="gallery.php?gid=<?= $g['gid'] ?>">
+          <img src="?img=1&gid=<?= $g['gid'] ?>&folder=<?= $g['folder'] ?>&n=1&size=800"
+               alt="Gallery <?= $g['gid'] ?>" loading="lazy">
+        </a>
         <div class="gallery-card-info">
           <strong>Gallery <?= $g['gid'] ?></strong>
-          <?= $g['total'] ?> photos &middot; <?= date('d M Y', strtotime($g['saved_at'])) ?>
+          <?php if ($g_partial): ?>
+            <span style="color:#f59e0b"><?= $g_saved ?>/<?= $g_total ?> saved</span>
+          <?php else: ?>
+            <?= $g_total ?> photos
+          <?php endif; ?>
+          &middot; <?= date('d M Y', strtotime($g['saved_at'])) ?>
+          <?php if ($g_partial && $g_gurl): ?>
+            <br><button class="btn btn-green" style="margin-top:.5rem; font-size:.75rem; padding:.35rem .8rem;"
+              onclick="saveGallery(this, <?= $g['gid'] ?>, <?= $g['folder'] ?>, <?= $g_total ?>, '<?= $g_gurl ?>')">
+              Resume (<?= $g_saved ?>/<?= $g_total ?>)
+            </button>
+          <?php endif; ?>
         </div>
-      </a>
+      </div>
     <?php endforeach; ?>
   </div>
 <?php endif; ?>
 
 <script>
-function saveGallery(gid, folder, total, gurl) {
-  const btn     = document.getElementById('save-btn');
+function saveGallery(triggerBtn, gid, folder, total, gurl) {
   const wrap    = document.getElementById('progress-wrap');
   const bar     = document.getElementById('progress-bar');
   const text    = document.getElementById('progress-text');
   const countEl = document.getElementById('progress-count');
 
-  btn.disabled = true;
+  triggerBtn.disabled = true;
+  bar.classList.remove('done');
+  bar.style.width = '0%';
   wrap.classList.add('active');
 
   let retries = 0;
@@ -462,7 +480,7 @@ function saveGallery(gid, folder, total, gurl) {
       if (d.error) {
         text.textContent = 'Error: ' + d.error;
         es.close();
-        btn.disabled = false;
+        triggerBtn.disabled = false;
         return;
       }
       if (d.done) {
@@ -486,12 +504,23 @@ function saveGallery(gid, folder, total, gurl) {
         setTimeout(connect, 1500);
       } else {
         text.textContent = 'Failed after ' + MAX_RETRIES + ' retries.';
-        btn.disabled = false;
+        triggerBtn.disabled = false;
       }
     }
 
     connect();
 }
 </script>
+
+<!-- Global progress bar (fixed bottom) -->
+<div class="progress-wrap" id="progress-wrap">
+  <div class="progress-label">
+    <span id="progress-text">Saving images…</span>
+    <span id="progress-count"></span>
+  </div>
+  <div class="progress-track">
+    <div class="progress-bar" id="progress-bar"></div>
+  </div>
+</div>
 </body>
 </html>
