@@ -1,0 +1,70 @@
+services:
+  proteinin:
+    build:
+      context: .
+    volumes:
+      - .:/app
+    ports:
+      - "8002:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - APP_URL=http://localhost:8002
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=proteinin
+      - DB_USERNAME=proteinin
+      - DB_PASSWORD=proteinin
+    command: >
+      bash -c "
+        composer install --no-interaction &&
+        cp -n .env.example .env || true &&
+        grep -q '^APP_KEY=$' .env && php artisan key:generate --no-interaction || true &&
+        php artisan migrate --force &&
+        chown -R www-data:www-data storage bootstrap/cache &&
+        apache2-foreground
+      "
+
+  scheduler:
+    build:
+      context: .
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - APP_URL=http://localhost:8002
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=proteinin
+      - DB_USERNAME=proteinin
+      - DB_PASSWORD=proteinin
+    command: >
+      bash -c "
+        sleep 10 &&
+        php artisan schedule:work
+      "
+
+  db:
+    image: mysql:8.0
+    ports:
+      - "7307:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=proteinin
+      - MYSQL_USER=proteinin
+      - MYSQL_PASSWORD=proteinin
+    volumes:
+      - proteinin_db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  proteinin_db:
