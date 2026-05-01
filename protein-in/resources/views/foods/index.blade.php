@@ -90,6 +90,36 @@
     <p class="hero-tagline">Calories are so last year</p>
 </div>
 
+@if($recentlyViewed->count())
+<div class="top-foods">
+    <h2>Recently viewed</h2>
+    <div class="food-grid">
+        @foreach($recentlyViewed as $food)
+        <a class="food-card" href="{{ route('foods.show', $food) }}">
+            <h3>{{ $food->name }}</h3>
+            <div class="protein">{{ $food->protein_per_100g }}g</div>
+            <div class="per">protein per 100g</div>
+        </a>
+        @endforeach
+    </div>
+</div>
+@endif
+
+@if($popular->count())
+<div class="top-foods">
+    <h2>Most popular</h2>
+    <div class="food-grid">
+        @foreach($popular as $food)
+        <a class="food-card" href="{{ route('foods.show', $food) }}">
+            <h3>{{ $food->name }}</h3>
+            <div class="protein">{{ $food->protein_per_100g }}g</div>
+            <div class="per">protein per 100g</div>
+        </a>
+        @endforeach
+    </div>
+</div>
+@endif
+
 @if($foods->count())
 <div class="top-foods">
     <h2>Highest protein foods</h2>
