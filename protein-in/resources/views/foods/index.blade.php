@@ -83,7 +83,7 @@
 
     <div class="hero-search">
         <form action="/search" method="GET">
-            <input type="text" name="q" placeholder="Chicken breast, lentils, greek yogurt…" autofocus>
+            <input type="text" name="q" placeholder="Chicken breast, lentil, greek yogurt…" autofocus>
             <button type="submit">Find protein</button>
         </form>
     </div>

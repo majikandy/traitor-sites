@@ -52,11 +52,23 @@ class SearchController extends Controller
 
     private function searchFoods(string $query)
     {
-        return Food::where('name', 'like', "%{$query}%")
-            ->orWhere('description', 'like', "%{$query}%")
-            ->orderByDesc('protein_per_100g')
-            ->paginate(20)
-            ->withQueryString();
+        // Build search terms: original words + de-pluralised variants
+        $words = array_filter(explode(' ', $query));
+        $terms = collect($words)
+            ->flatMap(fn($w) => strlen($w) > 3 && str_ends_with($w, 's')
+                ? [$w, rtrim($w, 's')]
+                : [$w])
+            ->unique()
+            ->values();
+
+        return Food::where(function ($q) use ($terms) {
+            foreach ($terms as $term) {
+                $q->orWhere('name', 'like', "%{$term}%");
+            }
+        })
+        ->orderByDesc('protein_per_100g')
+        ->paginate(20)
+        ->withQueryString();
     }
 
     private function backfillFromUsda(string $query): int
