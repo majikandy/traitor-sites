@@ -3,16 +3,14 @@
 help: ## Show available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
-dev: ## Rebuild, migrate, tail logs (full dev cycle)
+dev: ## Rebuild and tail logs (migrations run automatically on startup)
 	-docker compose down
 	docker compose up --build -d
-	docker compose exec proteinin php artisan migrate
 	docker compose logs -f
 
-start: ## Build and start containers with migrations
+start: ## Build and start containers (migrations run automatically on startup)
 	-docker compose down
 	docker compose up --build -d
-	docker compose exec proteinin php artisan migrate
 
 stop: ## Stop all containers (safe to run when already stopped)
 	-docker compose down

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Food;
 use App\Models\Search;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
@@ -20,17 +21,23 @@ class SearchController extends Controller
 
     public function show(string $query)
     {
-        $foods = $this->searchFoods($query);
+        $normalised = strtolower(trim($query));
 
-        // Zero results — try to backfill from USDA then re-query
-        if ($foods->total() === 0) {
-            $imported = $this->backfillFromUsda($query);
-            if ($imported > 0) {
-                $foods = $this->searchFoods($query);
-            }
+        // Backfill from USDA if this query hasn't been fetched before
+        $alreadyFetched = DB::table('usda_queries')->where('query', $normalised)->exists();
+        if (!$alreadyFetched) {
+            $imported = $this->backfillFromUsda($normalised);
+            DB::table('usda_queries')->insert([
+                'query'          => $normalised,
+                'imported_count' => $imported,
+                'created_at'     => now(),
+                'updated_at'     => now(),
+            ]);
         }
 
-        Search::log($query, $foods->total());
+        $foods = $this->searchFoods($normalised);
+
+        Search::log($normalised, $foods->total());
 
         return view('search.results', compact('query', 'foods'));
     }
