@@ -24,10 +24,8 @@ class SearchController extends Controller
     {
         $normalised = strtolower(trim($query));
 
-        // Also send reversed word order to USDA (e.g. "baked beans" → "beans, baked")
-        $queries = array_unique([$normalised, $this->reverseWords($normalised)]);
-
-        foreach ($queries as $q) {
+        // Generate USDA-style query variants — USDA names things as "Beans, baked" / "Chicken, breast"
+        foreach ($this->usdaQueryVariants($normalised) as $q) {
             if (!DB::table('usda_queries')->where('query', $q)->exists()) {
                 $imported = $this->usda->importByQuery($q);
                 DB::table('usda_queries')->insert([
@@ -46,11 +44,36 @@ class SearchController extends Controller
         return view('search.results', compact('query', 'foods'));
     }
 
-    /** "baked beans" → "beans baked" (USDA stores "Beans, baked") */
-    private function reverseWords(string $query): string
+    /**
+     * Generate USDA-style query variants.
+     * USDA names: "Beans, baked" / "Chicken, breast" / "Yogurt, Greek"
+     *
+     * "baked beans"    → ["baked beans", "beans, baked", "beans baked"]
+     * "chicken breast" → ["chicken breast", "chicken, breast"]
+     * "greek yogurt"   → ["greek yogurt", "yogurt, greek", "yogurt greek"]
+     */
+    private function usdaQueryVariants(string $query): array
     {
-        $words = array_filter(explode(' ', $query));
-        return count($words) > 1 ? implode(' ', array_reverse($words)) : $query;
+        $words = array_values(array_filter(explode(' ', $query)));
+        $variants = [$query];
+
+        if (count($words) >= 2) {
+            $last = array_pop($words);
+            $rest = implode(' ', $words);
+
+            // "beans, baked" — last word becomes main ingredient (most common USDA pattern)
+            $variants[] = "{$last}, {$rest}";
+            $variants[] = "{$last} {$rest}";
+
+            // "chicken, breast" — first word is already main (also common)
+            $first = array_shift($words);
+            $remainder = trim("{$rest}" . (count($words) ? ' ' . implode(' ', $words) : ''));
+            if ($first !== $last) {
+                $variants[] = "{$first}, {$last}" . ($remainder ? " {$remainder}" : '');
+            }
+        }
+
+        return array_unique($variants);
     }
 
     private function searchFoods(string $query)

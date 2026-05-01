@@ -18,7 +18,7 @@
         header { background: #1c1917; color: #fff; padding: 0.75rem 0; }
         header .wrap { display: flex; align-items: center; gap: 1rem; }
         header .logo { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; }
-        header .logo img { height: 32px; width: auto; }
+        header .logo img { height: 32px; width: auto; filter: brightness(0) invert(1); }
         header .logo span { color: #fbbf24; font-weight: 800; font-size: 1.1rem; letter-spacing: -0.02em; }
         header nav { display: flex; gap: 1.25rem; margin-left: auto; }
         header nav a { color: #d6d3d1; font-size: 0.875rem; }
