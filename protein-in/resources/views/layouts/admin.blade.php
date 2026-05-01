@@ -40,6 +40,7 @@
     <a href="{{ route('admin.searches') }}" class="{{ request()->routeIs('admin.searches') ? 'active' : '' }}">Search Queries</a>
     <a href="{{ route('admin.migrations') }}" class="{{ request()->routeIs('admin.migrations') ? 'active' : '' }}">Migrations</a>
     <a href="{{ route('admin.nutrition-backfill') }}" class="{{ request()->routeIs('admin.nutrition-backfill') ? 'active' : '' }}">Nutrition Backfill</a>
+    <a href="{{ route('admin.logs') }}" class="{{ request()->routeIs('admin.logs') ? 'active' : '' }}">Logs</a>
     <a href="/" target="_blank" style="margin-top:2rem;color:#78716c;">View site &rarr;</a>
 </nav>
 <main>

@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\FoodImportController;
 use App\Http\Controllers\Admin\PostImportController;
 use App\Http\Controllers\Admin\PostExportController;
 use App\Http\Controllers\Admin\MigrationsController;
+use App\Http\Controllers\Admin\LogsController;
 use App\Http\Controllers\Admin\NutritionBackfillController;
 
 Route::get('/', [FoodController::class, 'index']);
@@ -31,7 +32,7 @@ Route::get('/category/{category:slug}', [CategoryController::class, 'show'])->na
 Route::get('/tag/{tag:slug}', [TagController::class, 'show'])->name('tag.show');
 
 // Admin
-Route::prefix('admin')->name('admin.')->group(function () {
+Route::prefix('admin')->name('admin.')->middleware('admin.auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/searches', [SearchQueryController::class, 'index'])->name('searches');
     Route::post('/import', [FoodImportController::class, 'store'])->name('import');
@@ -41,6 +42,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('/migrations/run', [MigrationsController::class, 'run'])->name('migrations.run');
     Route::get('/nutrition-backfill', [NutritionBackfillController::class, 'index'])->name('nutrition-backfill');
     Route::post('/nutrition-backfill/run', [NutritionBackfillController::class, 'run'])->name('nutrition-backfill.run');
+    Route::get('/logs', [LogsController::class, 'index'])->name('logs');
+    Route::post('/logs/clear', [LogsController::class, 'clear'])->name('logs.clear');
 });
 
 // Blog
