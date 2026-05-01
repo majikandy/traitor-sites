@@ -10,12 +10,19 @@ class AdminAuth
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->session()->get('admin_authed')) {
+        $configured = config('app.admin_password');
+
+        // Fail-secure: if no password is configured, deny all access
+        if (!$configured) {
+            return response(view('admin.login', ['error' => 'ADMIN_PASSWORD not set.']), 403);
+        }
+
+        if ($request->session()->get('admin_authed') === true) {
             return $next($request);
         }
 
         if ($request->isMethod('post') && $request->input('admin_password')) {
-            if ($request->input('admin_password') === config('app.admin_password')) {
+            if (hash_equals($configured, $request->input('admin_password'))) {
                 $request->session()->put('admin_authed', true);
                 return redirect($request->url());
             }

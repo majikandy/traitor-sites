@@ -32,7 +32,7 @@ Route::get('/category/{category:slug}', [CategoryController::class, 'show'])->na
 Route::get('/tag/{tag:slug}', [TagController::class, 'show'])->name('tag.show');
 
 // Admin
-Route::prefix('admin')->name('admin.')->middleware('admin.auth')->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(\App\Http\Middleware\AdminAuth::class)->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/searches', [SearchQueryController::class, 'index'])->name('searches');
     Route::post('/import', [FoodImportController::class, 'store'])->name('import');
