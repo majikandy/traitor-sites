@@ -11,6 +11,14 @@ use Illuminate\Support\Str;
 
 class SearchController extends Controller
 {
+    // All USDA FoodData Central datasets to query
+    private const USDA_SOURCES = [
+        'Foundation',
+        'SR Legacy',
+        'Survey (FNDDS)',
+        'Branded',
+    ];
+
     public function index(Request $request)
     {
         if ($request->filled('q')) {
@@ -56,44 +64,48 @@ class SearchController extends Controller
         $apiKey = config('services.usda.api_key');
         if (!$apiKey) return 0;
 
-        try {
-            $response = Http::timeout(8)->get('https://api.nal.usda.gov/fdc/v1/foods/search', [
-                'api_key'  => $apiKey,
-                'query'    => $query,
-                'dataType' => 'SR Legacy,Foundation',
-                'pageSize' => 10,
-            ]);
+        $imported = 0;
 
-            if (!$response->ok()) return 0;
-
-            $imported = 0;
-            foreach ($response->json('foods', []) as $food) {
-                $nutrients = collect($food['foodNutrients'] ?? []);
-                $protein = $nutrients->firstWhere('nutrientName', 'Protein')['value'] ?? null;
-
-                if ($protein === null) continue;
-
-                $name = Str::title(strtolower($food['description']));
-                $slug = $this->uniqueSlug($name);
-
-                Food::firstOrCreate(['slug' => $slug], [
-                    'name'              => $name,
-                    'slug'              => $slug,
-                    'protein_per_100g'  => round($protein, 1),
-                    'calories_per_100g' => $this->nutrient($nutrients, 'Energy'),
-                    'fat_per_100g'      => $this->nutrient($nutrients, 'Total lipid (fat)'),
-                    'carbs_per_100g'    => $this->nutrient($nutrients, 'Carbohydrate, by difference'),
-                    'fibre_per_100g'    => $this->nutrient($nutrients, 'Fiber, total dietary'),
+        foreach (self::USDA_SOURCES as $source) {
+            try {
+                $response = Http::timeout(8)->get('https://api.nal.usda.gov/fdc/v1/foods/search', [
+                    'api_key'  => $apiKey,
+                    'query'    => $query,
+                    'dataType' => $source,
+                    'pageSize' => 10,
                 ]);
 
-                $imported++;
+                if (!$response->ok()) continue;
+
+                foreach ($response->json('foods', []) as $food) {
+                    $nutrients = collect($food['foodNutrients'] ?? []);
+                    $protein = $nutrients->firstWhere('nutrientName', 'Protein')['value'] ?? null;
+
+                    if ($protein === null) continue;
+
+                    $name = Str::title(strtolower($food['description']));
+                    $slug = $this->uniqueSlug($name);
+
+                    Food::firstOrCreate(['slug' => $slug], [
+                        'name'              => $name,
+                        'slug'              => $slug,
+                        'usda_source'       => $source,
+                        'protein_per_100g'  => round($protein, 1),
+                        'calories_per_100g' => $this->nutrient($nutrients, 'Energy'),
+                        'fat_per_100g'      => $this->nutrient($nutrients, 'Total lipid (fat)'),
+                        'carbs_per_100g'    => $this->nutrient($nutrients, 'Carbohydrate, by difference'),
+                        'fibre_per_100g'    => $this->nutrient($nutrients, 'Fiber, total dietary'),
+                    ]);
+
+                    $imported++;
+                }
+
+            } catch (\Exception) {
+                continue;
             }
-
-            return $imported;
-
-        } catch (\Exception) {
-            return 0;
         }
+
+        return $imported;
     }
 
     private function uniqueSlug(string $name): string
