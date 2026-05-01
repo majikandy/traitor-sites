@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\FoodImportController;
 use App\Http\Controllers\Admin\PostImportController;
 use App\Http\Controllers\Admin\PostExportController;
 use App\Http\Controllers\Admin\MigrationsController;
+use App\Http\Controllers\Admin\NutritionBackfillController;
 
 Route::get('/', [FoodController::class, 'index']);
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
@@ -38,6 +39,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('/export-posts', [PostExportController::class, 'store'])->name('export-posts');
     Route::get('/migrations', [MigrationsController::class, 'index'])->name('migrations');
     Route::post('/migrations/run', [MigrationsController::class, 'run'])->name('migrations.run');
+    Route::get('/nutrition-backfill', [NutritionBackfillController::class, 'index'])->name('nutrition-backfill');
+    Route::post('/nutrition-backfill/run', [NutritionBackfillController::class, 'run'])->name('nutrition-backfill.run');
 });
 
 // Blog
