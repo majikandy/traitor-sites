@@ -15,7 +15,7 @@ class SearchController extends Controller
     public function index(Request $request)
     {
         if ($request->filled('q')) {
-            return redirect()->route('search.show', urlencode($request->q));
+            return redirect()->route('search.show', rawurlencode($request->q));
         }
         return view('search.index');
     }
