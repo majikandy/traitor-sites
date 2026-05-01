@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Food;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class FoodController extends Controller
 {
@@ -32,6 +33,13 @@ class FoodController extends Controller
 
     public function show(Food $food)
     {
+        // Lazily fetch image from Open Food Facts on first visit
+        if ($food->image_url === null) {
+            $image = $this->fetchOpenFoodFactsImage($food->name);
+            DB::table('foods')->where('id', $food->id)->update(['image_url' => $image ?? '']);
+            $food->image_url = $image ?? '';
+        }
+
         // Increment view count
         DB::table('foods')->where('id', $food->id)->increment('view_count');
 
@@ -43,5 +51,30 @@ class FoodController extends Controller
 
         $food->load('categories', 'tags');
         return view('foods.show', compact('food'));
+    }
+
+    private function fetchOpenFoodFactsImage(string $foodName): ?string
+    {
+        try {
+            $response = Http::timeout(5)
+                ->withHeaders(['User-Agent' => 'Protein-In/1.0 (hello@protein-in.com)'])
+                ->get('https://world.openfoodfacts.org/cgi/search.pl', [
+                    'search_terms' => $foodName,
+                    'json'         => 1,
+                    'page_size'    => 5,
+                    'fields'       => 'product_name,image_thumb_url',
+                ]);
+
+            if (!$response->ok()) return null;
+
+            foreach ($response->json('products', []) as $product) {
+                $url = $product['image_thumb_url'] ?? null;
+                if ($url && str_starts_with($url, 'https://')) {
+                    return $url;
+                }
+            }
+        } catch (\Exception) {}
+
+        return null;
     }
 }

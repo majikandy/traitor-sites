@@ -4,39 +4,83 @@
 @section('description', 'How much protein is in ' . $food->name . '? ' . $food->protein_per_100g . 'g per 100g.')
 
 @section('content')
-<h1>{{ $food->name }}</h1>
-
-<div style="display:flex;gap:2rem;margin:1.5rem 0;flex-wrap:wrap;">
-    <div style="text-align:center;">
-        <div class="protein-badge">{{ $food->protein_per_100g }}g</div>
-        <div class="meta">protein per 100g</div>
-    </div>
-    @if($food->protein_per_serving)
-    <div style="text-align:center;">
-        <div class="protein-badge">{{ $food->protein_per_serving }}g</div>
-        <div class="meta">protein per {{ $food->serving_size }}</div>
-    </div>
+<div style="display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap;margin-bottom:1.5rem;">
+    @if($food->image_url)
+    <img src="{{ $food->image_url }}" alt="{{ $food->name }}" style="width:120px;height:120px;object-fit:contain;border-radius:8px;border:1px solid #e7e5e4;background:#fff;flex-shrink:0;">
     @endif
-    @if($food->calories_per_100g)
-    <div style="text-align:center;">
-        <div style="font-size:1.5rem;font-weight:700;">{{ $food->calories_per_100g }}</div>
-        <div class="meta">kcal per 100g</div>
+    <div>
+        <h1 style="margin-bottom:0.5rem;">{{ $food->name }}</h1>
+        @if($food->description)
+        <p style="color:#78716c;font-size:0.9rem;">{{ $food->description }}</p>
+        @endif
     </div>
-    @endif
 </div>
 
-@if($food->fat_per_100g || $food->carbs_per_100g || $food->fibre_per_100g)
-<table style="border-collapse:collapse;margin-bottom:1.5rem;">
-    <tr><th style="text-align:left;padding:0.3rem 1rem 0.3rem 0;color:#78716c;">Macros per 100g</th><th></th></tr>
-    @if($food->fat_per_100g)<tr><td>Fat</td><td>{{ $food->fat_per_100g }}g</td></tr>@endif
-    @if($food->carbs_per_100g)<tr><td>Carbs</td><td>{{ $food->carbs_per_100g }}g</td></tr>@endif
-    @if($food->fibre_per_100g)<tr><td>Fibre</td><td>{{ $food->fibre_per_100g }}g</td></tr>@endif
+<table style="border-collapse:collapse;margin-bottom:1.5rem;width:100%;max-width:360px;">
+    <thead>
+        <tr style="border-bottom:2px solid #e7e5e4;">
+            <th style="text-align:left;padding:0.4rem 1rem 0.4rem 0;color:#78716c;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;">Nutrient</th>
+            <th style="text-align:right;padding:0.4rem 0;color:#78716c;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;">Per 100g</th>
+            @if($food->protein_per_serving)<th style="text-align:right;padding:0.4rem 0 0.4rem 1rem;color:#78716c;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;">Per {{ $food->serving_size }}</th>@endif
+        </tr>
+    </thead>
+    <tbody>
+        <tr style="border-bottom:1px solid #f5f5f4;background:#fef3c7;">
+            <td style="padding:0.5rem 1rem 0.5rem 0;font-weight:700;">Protein</td>
+            <td style="text-align:right;font-weight:700;color:#b45309;">{{ $food->protein_per_100g }}g</td>
+            @if($food->protein_per_serving)<td style="text-align:right;padding-left:1rem;color:#b45309;font-weight:700;">{{ $food->protein_per_serving }}g</td>@endif
+        </tr>
+        @if($food->calories_per_100g)
+        <tr style="border-bottom:1px solid #f5f5f4;">
+            <td style="padding:0.5rem 1rem 0.5rem 0;">Calories</td>
+            <td style="text-align:right;">{{ $food->calories_per_100g }} kcal</td>
+            @if($food->protein_per_serving)<td></td>@endif
+        </tr>
+        @endif
+        @if($food->fat_per_100g)
+        <tr style="border-bottom:1px solid #f5f5f4;">
+            <td style="padding:0.5rem 1rem 0.5rem 0;">Fat</td>
+            <td style="text-align:right;">{{ $food->fat_per_100g }}g</td>
+            @if($food->protein_per_serving)<td></td>@endif
+        </tr>
+        @endif
+        @if(isset($food->saturated_fat_per_100g) && $food->saturated_fat_per_100g)
+        <tr style="border-bottom:1px solid #f5f5f4;">
+            <td style="padding:0.5rem 1rem 0.5rem 1rem;color:#78716c;font-size:0.9rem;">of which saturates</td>
+            <td style="text-align:right;color:#78716c;font-size:0.9rem;">{{ $food->saturated_fat_per_100g }}g</td>
+            @if($food->protein_per_serving)<td></td>@endif
+        </tr>
+        @endif
+        @if($food->carbs_per_100g)
+        <tr style="border-bottom:1px solid #f5f5f4;">
+            <td style="padding:0.5rem 1rem 0.5rem 0;">Carbohydrates</td>
+            <td style="text-align:right;">{{ $food->carbs_per_100g }}g</td>
+            @if($food->protein_per_serving)<td></td>@endif
+        </tr>
+        @endif
+        @if(isset($food->sugar_per_100g) && $food->sugar_per_100g)
+        <tr style="border-bottom:1px solid #f5f5f4;">
+            <td style="padding:0.5rem 1rem 0.5rem 1rem;color:#78716c;font-size:0.9rem;">of which sugars</td>
+            <td style="text-align:right;color:#78716c;font-size:0.9rem;">{{ $food->sugar_per_100g }}g</td>
+            @if($food->protein_per_serving)<td></td>@endif
+        </tr>
+        @endif
+        @if($food->fibre_per_100g)
+        <tr style="border-bottom:1px solid #f5f5f4;">
+            <td style="padding:0.5rem 1rem 0.5rem 0;">Fibre</td>
+            <td style="text-align:right;">{{ $food->fibre_per_100g }}g</td>
+            @if($food->protein_per_serving)<td></td>@endif
+        </tr>
+        @endif
+        @if(isset($food->salt_per_100g) && $food->salt_per_100g)
+        <tr>
+            <td style="padding:0.5rem 1rem 0.5rem 0;">Salt</td>
+            <td style="text-align:right;">{{ $food->salt_per_100g }}g</td>
+            @if($food->protein_per_serving)<td></td>@endif
+        </tr>
+        @endif
+    </tbody>
 </table>
-@endif
-
-@if($food->description)
-<p style="margin-bottom:1.5rem;">{{ $food->description }}</p>
-@endif
 
 @if($food->categories->count())
 <div style="margin-bottom:0.75rem;">
