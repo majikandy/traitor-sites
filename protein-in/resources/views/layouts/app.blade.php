@@ -69,6 +69,11 @@
 </main>
 <footer>
     <div class="wrap">
+        <div style="display:flex;justify-content:center;gap:1.5rem;margin-bottom:0.75rem;">
+            <a href="/" style="color:#78716c;">Home</a>
+            <a href="/foods" style="color:#78716c;">Browse</a>
+            <a href="/blog" style="color:#78716c;">Blog</a>
+        </div>
         &copy; {{ date('Y') }} Protein-In &mdash; Calories are so last year
     </div>
 </footer>

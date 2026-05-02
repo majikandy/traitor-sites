@@ -17,21 +17,16 @@
 </div>
 
 <h2>Legacy posts</h2>
-<p style="color:#78716c;font-size:0.875rem;margin-bottom:0.75rem;">102 known URLs from the original protein-in.com (2010–2011). Fetches each from Wayback Machine and imports as published posts.</p>
-<form method="POST" action="{{ route('admin.import-posts') }}">
-    @csrf
-    <button type="submit" class="btn-primary">Import all legacy posts from Wayback Machine</button>
-</form>
+<p style="color:#78716c;font-size:0.875rem;margin-bottom:0.75rem;">102 known URLs from the original protein-in.com (2010–2011). Fetches each from Wayback Machine — takes several minutes, must be run via SSH.</p>
 
-@if(session('post_import_result'))
-<div class="import-result" style="margin-top:1rem;">
-    <pre>{{ session('post_import_result') }}</pre>
+<div style="background:#1c1917;color:#d6d3d1;font-family:monospace;font-size:0.85rem;padding:0.75rem 1rem;border-radius:6px;margin-bottom:0.75rem;">
+    php artisan posts:import
 </div>
-@endif
 
-<form method="POST" action="{{ route('admin.export-posts') }}" style="margin-top:0.75rem;">
+<p style="color:#78716c;font-size:0.8rem;margin-bottom:0.75rem;">Once imported, save to <code>posts.json</code> so they survive a fresh deploy:</p>
+<form method="POST" action="{{ route('admin.export-posts') }}">
     @csrf
-    <button type="submit" class="btn-import">Save to posts.json (hardcode for seeder)</button>
+    <button type="submit" class="btn-import">Save to posts.json (seeder backup)</button>
 </form>
 
 @if(session('post_export_result'))

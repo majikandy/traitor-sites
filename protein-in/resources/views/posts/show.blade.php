@@ -9,7 +9,7 @@
     <div class="meta">{{ $post->published_at->format('j F Y') }}</div>
 
     <div style="margin:1.5rem 0;line-height:1.8;">
-        {!! nl2br(e($post->content)) !!}
+        {!! $post->content !!}
     </div>
 
     @if($post->categories->count())
