@@ -5,9 +5,9 @@
 
 @section('content')
 <div style="display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap;margin-bottom:1.5rem;">
-    @if($food->image_url)
-    <img src="{{ $food->image_url }}" alt="{{ $food->name }}" style="width:120px;height:120px;object-fit:contain;border-radius:8px;border:1px solid #e7e5e4;background:#fff;flex-shrink:0;">
-    @endif
+    <div id="food-image-wrap" style="width:120px;height:120px;flex-shrink:0;{{ $food->image_url ? '' : 'display:none;' }}">
+        <img id="food-image" src="{{ $food->image_url ?? '' }}" alt="{{ $food->name }}" style="width:120px;height:120px;object-fit:contain;border-radius:8px;border:1px solid #e7e5e4;background:#fff;">
+    </div>
     <div>
         <h1 style="margin-bottom:0.5rem;">{{ $food->name }}</h1>
         @if($food->description)
@@ -96,5 +96,21 @@
     <a class="pill" href="{{ route('tag.show', $tag) }}" style="background:#f0fdf4;color:#166534;">{{ $tag->name }}</a>
     @endforeach
 </div>
+@endif
+
+@if($food->image_url === null)
+<script>
+fetch('{{ route('foods.image', $food) }}')
+    .then(r => r.json())
+    .then(data => {
+        if (data.image_url) {
+            const img = document.getElementById('food-image');
+            const wrap = document.getElementById('food-image-wrap');
+            img.src = data.image_url;
+            wrap.style.display = '';
+        }
+    })
+    .catch(() => {});
+</script>
 @endif
 @endsection

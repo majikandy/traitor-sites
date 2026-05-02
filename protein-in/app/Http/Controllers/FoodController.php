@@ -33,13 +33,6 @@ class FoodController extends Controller
 
     public function show(Food $food)
     {
-        // Lazily fetch image from Open Food Facts on first visit
-        if ($food->image_url === null) {
-            $image = $this->fetchOpenFoodFactsImage($food->name);
-            DB::table('foods')->where('id', $food->id)->update(['image_url' => $image ?? '']);
-            $food->image_url = $image ?? '';
-        }
-
         // Increment view count
         DB::table('foods')->where('id', $food->id)->increment('view_count');
 
@@ -51,6 +44,22 @@ class FoodController extends Controller
 
         $food->load('categories', 'tags');
         return view('foods.show', compact('food'));
+    }
+
+    /**
+     * Called async from the food page — fetches image from Open Food Facts and caches it.
+     */
+    public function fetchImage(Food $food)
+    {
+        // Already resolved (found or confirmed not found)
+        if ($food->image_url !== null) {
+            return response()->json(['image_url' => $food->image_url ?: null]);
+        }
+
+        $image = $this->fetchOpenFoodFactsImage($food->name);
+        DB::table('foods')->where('id', $food->id)->update(['image_url' => $image ?? '']);
+
+        return response()->json(['image_url' => $image]);
     }
 
     private function fetchOpenFoodFactsImage(string $foodName): ?string

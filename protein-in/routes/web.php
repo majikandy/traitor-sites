@@ -27,6 +27,7 @@ Route::get('/search', [SearchController::class, 'index'])->name('search.index');
 // Individual food pages
 Route::get('/foods', [FoodController::class, 'browse'])->name('foods.browse');
 Route::get('/foods/{food:slug}', [FoodController::class, 'show'])->name('foods.show');
+Route::get('/foods/{food:slug}/image', [FoodController::class, 'fetchImage'])->name('foods.image');
 
 // Taxonomy — dynamic, shared by foods + posts
 Route::get('/category/{category:slug}', [CategoryController::class, 'show'])->name('category.show');
