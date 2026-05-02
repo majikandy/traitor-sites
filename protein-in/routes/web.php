@@ -39,7 +39,7 @@ Route::post('/admin/login', function (\Illuminate\Http\Request $request) {
     $configured = config('app.admin_password');
     $redirect = $request->input('redirect', '/admin');
     if ($configured && hash_equals($configured, $request->input('admin_password', ''))) {
-        $request->session()->put('admin_authed', true);
+        $request->session()->put('admin_authed_at', now()->timestamp);
         return redirect($redirect);
     }
     return response(view('admin.login', ['error' => 'Wrong password.', 'redirect' => $redirect]), 401);
