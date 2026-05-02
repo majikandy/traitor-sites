@@ -14,37 +14,30 @@
 </div>
 <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
 
-<p class="meta" id="result-count" style="display:none;">{{ $foods->total() }} {{ Str::plural('result', $foods->total()) }}</p>
-
-<div id="results-grid" class="food-grid">
-    @forelse($foods as $food)
-    <a class="food-card" href="{{ route('foods.show', $food) }}" style="display:block;color:inherit;">
-        @if($food->image_url)
-        <img src="{{ $food->image_url }}" alt="{{ $food->name }}" style="width:100%;height:80px;object-fit:contain;margin-bottom:0.5rem;border-radius:4px;background:#fafaf9;">
-        @endif
-        <h3>{{ $food->name }}</h3>
-        <div class="protein">{{ $food->protein_per_100g }}g <span style="font-weight:400;color:#78716c;font-size:0.8rem;">protein / 100g</span></div>
-        @if($food->calories_per_100g)
-        <div style="color:#78716c;font-size:0.8rem;">{{ $food->calories_per_100g }} kcal</div>
-        @endif
-        @if($food->carbs_per_100g || $food->fat_per_100g || $food->fibre_per_100g)
-        <div style="color:#a8a29e;font-size:0.75rem;margin-top:0.25rem;">
-            @if($food->carbs_per_100g)C: {{ $food->carbs_per_100g }}g @endif
-            @if($food->fat_per_100g)F: {{ $food->fat_per_100g }}g @endif
-            @if($food->fibre_per_100g)Fi: {{ $food->fibre_per_100g }}g @endif
-        </div>
-        @endif
-    </a>
-    @empty
-    <p id="no-results" style="display:none;">No results for "{{ $query }}". Try a different search.</p>
-    @endforelse
+<div id="result-meta" style="display:none;margin-bottom:0.75rem;">
+    <span class="meta" id="result-count">{{ $foods->total() }} {{ Str::plural('result', $foods->total()) }}</span>
+    <span id="filter-count" style="display:none;color:#b45309;font-size:0.875rem;margin-left:0.5rem;"></span>
 </div>
 
-{{ $foods->links() }}
+<div style="margin-bottom:1rem;">
+    <input
+        type="text"
+        id="filter-input"
+        placeholder="Filter results… e.g. raw, grilled, canned"
+        value="{{ $filter }}"
+        style="width:100%;max-width:420px;padding:0.5rem 0.85rem;border:1px solid #d6d3d1;border-radius:6px;font-size:0.9rem;background:#fff;outline:none;"
+        autocomplete="off"
+    >
+</div>
+
+<div id="results-grid" class="food-grid">
+    @include('search._results_grid', ['foods' => $foods])
+</div>
 
 <script>
 (function () {
     const needsImport = {{ $needsImport ? 'true' : 'false' }};
+    const baseUrl = '{{ route('search.show', rawurlencode($query)) }}';
     const freshMessages = [
         'Searching our database…',
         'Checking spelling variants…',
@@ -66,8 +59,11 @@
     let i = 0;
     const el = document.getElementById('import-msg');
     const statusEl = document.getElementById('import-status');
+    const metaEl = document.getElementById('result-meta');
     const countEl = document.getElementById('result-count');
-    const noResultsEl = document.getElementById('no-results');
+    const filterCountEl = document.getElementById('filter-count');
+    const gridEl = document.getElementById('results-grid');
+    const filterInput = document.getElementById('filter-input');
 
     const timer = setInterval(() => {
         i = (i + 1) % messages.length;
@@ -77,13 +73,10 @@
     function done(imported) {
         clearInterval(timer);
         if (imported > 0) {
-            // New results found — snap to fresh page
             window.location.reload();
         } else {
-            // Nothing new — quietly hide the spinner, show counts
             statusEl.style.display = 'none';
-            countEl.style.display = '';
-            if (noResultsEl) noResultsEl.style.display = '';
+            metaEl.style.display = '';
         }
     }
 
@@ -97,6 +90,51 @@
     .then(r => r.json())
     .then(data => done(data.imported ?? 0))
     .catch(() => done(0));
+
+    // --- Filter box ---
+    let filterTimer = null;
+    let currentFilter = '{{ addslashes($filter) }}';
+
+    function applyFilter(value) {
+        const params = new URLSearchParams({ filter: value });
+        const url = baseUrl + '?' + params.toString();
+
+        fetch(url, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            gridEl.innerHTML = data.html;
+            const total = data.total;
+            if (value) {
+                countEl.textContent = total + ' ' + (total === 1 ? 'result' : 'results') + ' for "{{ addslashes($query) }}"';
+                filterCountEl.textContent = '(' + total + ' match' + (total !== 1 ? 'es' : '') + ' "' + value + '")';
+                filterCountEl.style.display = '';
+            } else {
+                countEl.textContent = total + ' ' + (total === 1 ? 'result' : 'results');
+                filterCountEl.style.display = 'none';
+            }
+            // Update URL without reload
+            const historyParams = value ? '?filter=' + encodeURIComponent(value) : '';
+            history.replaceState(null, '', baseUrl + historyParams);
+        })
+        .catch(() => {});
+    }
+
+    filterInput.addEventListener('input', function () {
+        clearTimeout(filterTimer);
+        const val = this.value.trim();
+        filterTimer = setTimeout(() => applyFilter(val), 280);
+    });
+
+    filterInput.addEventListener('focus', function () {
+        this.style.borderColor = '#b45309';
+        this.style.boxShadow = '0 0 0 2px #fef3c7';
+    });
+    filterInput.addEventListener('blur', function () {
+        this.style.borderColor = '#d6d3d1';
+        this.style.boxShadow = '';
+    });
 })();
 </script>
 @endsection

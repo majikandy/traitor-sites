@@ -14,21 +14,13 @@ class AdminAuth
 
         // Fail-secure: if no password is configured, deny all access
         if (!$configured) {
-            return response(view('admin.login', ['error' => 'ADMIN_PASSWORD not set.']), 403);
+            return response(view('admin.login', ['error' => 'ADMIN_PASSWORD not set.', 'redirect' => $request->url()]), 403);
         }
 
         if ($request->session()->get('admin_authed') === true) {
             return $next($request);
         }
 
-        if ($request->isMethod('post') && $request->input('admin_password')) {
-            if (hash_equals($configured, $request->input('admin_password'))) {
-                $request->session()->put('admin_authed', true);
-                return redirect($request->url());
-            }
-            return response(view('admin.login', ['error' => 'Wrong password.']), 401);
-        }
-
-        return response(view('admin.login', ['error' => null]), 401);
+        return redirect()->route('admin.login', ['redirect' => $request->url()]);
     }
 }

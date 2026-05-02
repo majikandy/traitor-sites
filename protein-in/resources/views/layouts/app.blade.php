@@ -47,6 +47,7 @@
     <div class="wrap">
         <a class="logo" href="/">
             <img src="/logo.png" alt="Protein-In">
+            <span>Protein-In</span>
         </a>
         <div class="header-search">
             <form action="/search" method="GET">

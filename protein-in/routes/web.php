@@ -33,6 +33,18 @@ Route::get('/foods/{food:slug}/image', [FoodController::class, 'fetchImage'])->n
 Route::get('/category/{category:slug}', [CategoryController::class, 'show'])->name('category.show');
 Route::get('/tag/{tag:slug}', [TagController::class, 'show'])->name('tag.show');
 
+// Admin login (no auth required — handles the POST login submission)
+Route::get('/admin/login', fn() => view('admin.login', ['error' => null, 'redirect' => '/admin']))->name('admin.login');
+Route::post('/admin/login', function (\Illuminate\Http\Request $request) {
+    $configured = config('app.admin_password');
+    $redirect = $request->input('redirect', '/admin');
+    if ($configured && hash_equals($configured, $request->input('admin_password', ''))) {
+        $request->session()->put('admin_authed', true);
+        return redirect($redirect);
+    }
+    return response(view('admin.login', ['error' => 'Wrong password.', 'redirect' => $redirect]), 401);
+})->name('admin.login.post');
+
 // Admin
 Route::prefix('admin')->name('admin.')->middleware(\App\Http\Middleware\AdminAuth::class)->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');

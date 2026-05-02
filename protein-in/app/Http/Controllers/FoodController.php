@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Food;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -27,8 +28,9 @@ class FoodController extends Controller
 
     public function browse()
     {
+        $categories = Category::withCount('foods')->having('foods_count', '>', 0)->orderBy('name')->get();
         $foods = Food::orderBy('name')->paginate(50);
-        return view('foods.browse', compact('foods'));
+        return view('foods.browse', compact('foods', 'categories'));
     }
 
     public function show(Food $food)

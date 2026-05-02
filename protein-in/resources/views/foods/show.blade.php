@@ -4,6 +4,17 @@
 @section('description', 'How much protein is in ' . $food->name . '? ' . $food->protein_per_100g . 'g per 100g.')
 
 @section('content')
+<nav style="font-size:0.8rem;color:#78716c;margin-bottom:1rem;">
+    <a href="/" style="color:#78716c;">Home</a> &rsaquo;
+    @if($food->categories->count())
+    <a href="{{ route('foods.browse') }}" style="color:#78716c;">Browse</a> &rsaquo;
+    <a href="{{ route('category.show', $food->categories->first()) }}" style="color:#78716c;">{{ $food->categories->first()->name }}</a> &rsaquo;
+    @else
+    <a href="{{ route('foods.browse') }}" style="color:#78716c;">Browse</a> &rsaquo;
+    @endif
+    {{ $food->name }}
+</nav>
+
 <div style="display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap;margin-bottom:1.5rem;">
     <div id="food-image-wrap" style="width:120px;height:120px;flex-shrink:0;{{ $food->image_url ? '' : 'display:none;' }}">
         <img id="food-image" src="{{ $food->image_url ?? '' }}" alt="{{ $food->name }}" style="width:120px;height:120px;object-fit:contain;border-radius:8px;border:1px solid #e7e5e4;background:#fff;">

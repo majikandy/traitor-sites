@@ -20,19 +20,28 @@ class SearchController extends Controller
         return view('search.index');
     }
 
-    public function show(string $query)
+    public function show(Request $request, string $query)
     {
         $normalised = strtolower(trim($query));
+        $filter = strtolower(trim($request->get('filter', '')));
 
         // Always show animation — new queries fetch from USDA, repeat queries cross-reference
         $needsImport = collect($this->usdaQueryVariants($normalised))
             ->some(fn($q) => !DB::table('usda_queries')->where('query', $q)->exists());
 
-        $foods = $this->searchFoods($normalised);
+        $foods = $this->searchFoods($normalised, $filter);
 
         Search::log($normalised, $foods->total());
 
-        return view('search.results', compact('query', 'foods', 'needsImport'));
+        // AJAX filter request — return just the grid + pagination partial
+        if ($request->ajax()) {
+            return response()->json([
+                'html'  => view('search._results_grid', compact('foods'))->render(),
+                'total' => $foods->total(),
+            ]);
+        }
+
+        return view('search.results', compact('query', 'filter', 'foods', 'needsImport'));
     }
 
     /**
@@ -81,7 +90,7 @@ class SearchController extends Controller
         return array_unique($variants);
     }
 
-    private function searchFoods(string $query)
+    private function searchFoods(string $query, string $filter = '')
     {
         $words = array_filter(explode(' ', $query));
         $firstWord = strtolower(trim(array_values($words)[0] ?? $query));
@@ -93,16 +102,21 @@ class SearchController extends Controller
             ->unique()
             ->values();
 
-        return Food::where(function ($q) use ($terms) {
+        $q = Food::where(function ($q) use ($terms) {
             foreach ($terms as $term) {
                 $q->orWhere('name', 'like', "%{$term}%");
             }
-        })
-        // Starts with first search word → top; then popularity; then protein
-        ->orderByRaw('CASE WHEN LOWER(name) LIKE ? THEN 0 ELSE 1 END', [$firstWord . '%'])
-        ->orderByDesc('view_count')
-        ->orderByDesc('protein_per_100g')
-        ->paginate(20)
-        ->withQueryString();
+        });
+
+        if ($filter !== '') {
+            $q->where('name', 'like', "%{$filter}%");
+        }
+
+        return $q
+            ->orderByRaw('CASE WHEN LOWER(name) LIKE ? THEN 0 ELSE 1 END', [$firstWord . '%'])
+            ->orderByDesc('view_count')
+            ->orderByDesc('protein_per_100g')
+            ->paginate(20)
+            ->withQueryString();
     }
 }

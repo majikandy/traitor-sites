@@ -23,8 +23,9 @@
     @if($error)
     <div class="error">{{ $error }}</div>
     @endif
-    <form method="POST">
+    <form method="POST" action="/admin/login">
         @csrf
+        <input type="hidden" name="redirect" value="{{ $redirect ?? '/admin' }}">
         <input type="password" name="admin_password" placeholder="Password" autofocus>
         <button type="submit">Sign in</button>
     </form>
