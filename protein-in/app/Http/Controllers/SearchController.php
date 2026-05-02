@@ -91,6 +91,7 @@ class SearchController extends Controller
                 $q->orWhere('name', 'like', "%{$term}%");
             }
         })
+        ->orderByDesc('view_count')
         ->orderByDesc('protein_per_100g')
         ->paginate(20)
         ->withQueryString();
