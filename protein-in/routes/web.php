@@ -36,9 +36,9 @@ Route::get('/tag/{tag:slug}', [TagController::class, 'show'])->name('tag.show');
 // Admin login (no auth required — handles the POST login submission)
 Route::get('/admin/login', fn() => view('admin.login', ['error' => null, 'redirect' => '/admin']))->name('admin.login');
 Route::post('/admin/login', function (\Illuminate\Http\Request $request) {
-    $configured = config('app.admin_password');
+    $secret = config('app.admin_shared_secret');
     $redirect = $request->input('redirect', '/admin');
-    if ($configured && hash_equals($configured, $request->input('admin_password', ''))) {
+    if ($secret && hash_equals($secret, $request->input('admin_password', ''))) {
         $request->session()->put('admin_authed_at', now()->timestamp);
         return redirect($redirect);
     }

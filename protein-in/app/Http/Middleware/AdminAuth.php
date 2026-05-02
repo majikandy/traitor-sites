@@ -9,39 +9,47 @@ use Symfony\Component\HttpFoundation\Response;
 class AdminAuth
 {
     private const SESSION_TTL_SECONDS = 20 * 60; // 20 minutes
+    private const TOKEN_WINDOW_SECONDS = 30;      // each HMAC token is valid for up to 2 windows (~60s)
 
     public function handle(Request $request, Closure $next): Response
     {
-        $configured = config('app.admin_password');
+        $secret = config('app.admin_shared_secret');
 
-        // Fail-secure: if no password is configured, deny all access
-        if (!$configured) {
-            return response(view('admin.login', ['error' => 'ADMIN_PASSWORD not set.', 'redirect' => $request->url()]), 403);
+        // Fail-secure: if no secret is configured, deny all access
+        if (!$secret) {
+            abort(403, 'Admin access not configured.');
         }
 
-        // Token in URL — authenticate and redirect to strip it from the URL
+        // HMAC token in URL — validate against current and previous 30s window,
+        // then redirect to strip the token from the URL (keeps it out of browser history)
         $token = $request->query('token');
         if ($token) {
-            if (hash_equals($configured, $token)) {
+            if ($this->isValidHmacToken($token, $secret)) {
                 $request->session()->put('admin_authed_at', now()->timestamp);
-                // Redirect to the same URL without the token query param
-                $clean = $request->fullUrlWithoutQuery('token');
-                return redirect($clean);
+                return redirect($request->fullUrlWithoutQuery('token'));
             }
-            // Bad token — fall through to normal login redirect
+            // Bad/expired token — fall through to login redirect
         }
 
         // Check active session and enforce 20-minute TTL
         $authedAt = $request->session()->get('admin_authed_at');
         if ($authedAt && (now()->timestamp - $authedAt) < self::SESSION_TTL_SECONDS) {
-            // Refresh the TTL on activity
-            $request->session()->put('admin_authed_at', now()->timestamp);
+            $request->session()->put('admin_authed_at', now()->timestamp); // slide TTL
             return $next($request);
         }
 
-        // Expired or no session
         $request->session()->forget('admin_authed_at');
-
         return redirect()->route('admin.login', ['redirect' => $request->url()]);
+    }
+
+    private function isValidHmacToken(string $token, string $secret): bool
+    {
+        $window = (int) floor(time() / self::TOKEN_WINDOW_SECONDS);
+        foreach ([$window, $window - 1] as $w) {
+            if (hash_equals(hash_hmac('sha256', (string) $w, $secret), $token)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
