@@ -24,34 +24,41 @@ class SearchController extends Controller
     {
         $normalised = strtolower(trim($query));
 
-        // Generate USDA-style query variants — USDA names things as "Beans, baked" / "Chicken, breast"
-        foreach ($this->usdaQueryVariants($normalised) as $q) {
-            if (!DB::table('usda_queries')->where('query', $q)->exists()) {
-                $imported = $this->usda->importByQuery($q);
-                DB::table('usda_queries')->insert([
-                    'query'          => $q,
-                    'imported_count' => $imported,
-                    'created_at'     => now(),
-                    'updated_at'     => now(),
-                ]);
-            }
-        }
+        // Check if any variant has never been fetched from USDA
+        $needsImport = collect($this->usdaQueryVariants($normalised))
+            ->some(fn($q) => !DB::table('usda_queries')->where('query', $q)->exists());
 
         $foods = $this->searchFoods($normalised);
 
         Search::log($normalised, $foods->total());
 
-        return view('search.results', compact('query', 'foods'));
+        return view('search.results', compact('query', 'foods', 'needsImport'));
     }
 
     /**
-     * Generate USDA-style query variants.
-     * USDA names: "Beans, baked" / "Chicken, breast" / "Yogurt, Greek"
-     *
-     * "baked beans"    → ["baked beans", "beans, baked", "beans baked"]
-     * "chicken breast" → ["chicken breast", "chicken, breast"]
-     * "greek yogurt"   → ["greek yogurt", "yogurt, greek", "yogurt greek"]
+     * Called via AJAX — runs USDA backfill and returns count of new foods.
      */
+    public function backfill(string $query)
+    {
+        $normalised = strtolower(trim($query));
+        $imported = 0;
+
+        foreach ($this->usdaQueryVariants($normalised) as $q) {
+            if (!DB::table('usda_queries')->where('query', $q)->exists()) {
+                $count = $this->usda->importByQuery($q);
+                DB::table('usda_queries')->insert([
+                    'query'          => $q,
+                    'imported_count' => $count,
+                    'created_at'     => now(),
+                    'updated_at'     => now(),
+                ]);
+                $imported += $count;
+            }
+        }
+
+        return response()->json(['imported' => $imported]);
+    }
+
     private function usdaQueryVariants(string $query): array
     {
         $words = array_values(array_filter(explode(' ', $query)));
@@ -61,11 +68,9 @@ class SearchController extends Controller
             $last = array_pop($words);
             $rest = implode(' ', $words);
 
-            // "beans, baked" — last word becomes main ingredient (most common USDA pattern)
             $variants[] = "{$last}, {$rest}";
             $variants[] = "{$last} {$rest}";
 
-            // "chicken, breast" — first word is already main (also common)
             $first = array_shift($words);
             $remainder = trim("{$rest}" . (count($words) ? ' ' . implode(' ', $words) : ''));
             if ($first !== $last) {

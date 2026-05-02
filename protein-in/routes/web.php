@@ -21,6 +21,7 @@ Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap')
 
 // Food search — fully linkable path-based URLs
 Route::get('/search/{query}', [SearchController::class, 'show'])->name('search.show');
+Route::post('/search/{query}/backfill', [SearchController::class, 'backfill'])->name('search.backfill');
 Route::get('/search', [SearchController::class, 'index'])->name('search.index');
 
 // Individual food pages
