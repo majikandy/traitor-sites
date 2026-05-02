@@ -24,7 +24,7 @@ class SearchController extends Controller
     {
         $normalised = strtolower(trim($query));
 
-        // Check if any variant has never been fetched from USDA
+        // Always show animation — new queries fetch from USDA, repeat queries cross-reference
         $needsImport = collect($this->usdaQueryVariants($normalised))
             ->some(fn($q) => !DB::table('usda_queries')->where('query', $q)->exists());
 
@@ -84,6 +84,8 @@ class SearchController extends Controller
     private function searchFoods(string $query)
     {
         $words = array_filter(explode(' ', $query));
+        $firstWord = strtolower(trim(array_values($words)[0] ?? $query));
+
         $terms = collect($words)
             ->flatMap(fn($w) => strlen($w) > 3 && str_ends_with($w, 's')
                 ? [$w, rtrim($w, 's')]
@@ -96,6 +98,8 @@ class SearchController extends Controller
                 $q->orWhere('name', 'like', "%{$term}%");
             }
         })
+        // Starts with first search word → top; then popularity; then protein
+        ->orderByRaw('CASE WHEN LOWER(name) LIKE ? THEN 0 ELSE 1 END', [$firstWord . '%'])
         ->orderByDesc('view_count')
         ->orderByDesc('protein_per_100g')
         ->paginate(20)

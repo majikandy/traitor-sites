@@ -6,17 +6,15 @@
 @section('content')
 <h1>Protein in "{{ $query }}"</h1>
 
-@if($needsImport)
-<div id="import-status" style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem;color:#b45309;font-size:0.95rem;">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;animation:spin 1s linear infinite;">
+<div id="import-status" style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem;color:#b45309;font-size:0.9rem;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;animation:spin 1s linear infinite;">
         <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
     </svg>
-    <span id="import-msg">Searching our database…</span>
+    <span id="import-msg">{{ $needsImport ? 'Searching our database…' : 'Cross-referencing results…' }}</span>
 </div>
 <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
-@else
-<p class="meta" id="result-count">{{ $foods->total() }} {{ Str::plural('result', $foods->total()) }} — sorted by popularity</p>
-@endif
+
+<p class="meta" id="result-count" style="display:none;">{{ $foods->total() }} {{ Str::plural('result', $foods->total()) }}</p>
 
 <div id="results-grid" class="food-grid">
     @forelse($foods as $food)
@@ -38,18 +36,16 @@
         @endif
     </a>
     @empty
-    @if(!$needsImport)
-    <p>No results for "{{ $query }}". Try a different search.</p>
-    @endif
+    <p id="no-results" style="display:none;">No results for "{{ $query }}". Try a different search.</p>
     @endforelse
 </div>
 
 {{ $foods->links() }}
 
-@if($needsImport)
 <script>
 (function () {
-    const messages = [
+    const needsImport = {{ $needsImport ? 'true' : 'false' }};
+    const freshMessages = [
         'Searching our database…',
         'Checking spelling variants…',
         'Finding matches…',
@@ -59,12 +55,37 @@
         'Cross-referencing nutrients…',
         'Almost there…',
     ];
+    const repeatMessages = [
+        'Cross-referencing results…',
+        'Making sure we\'re up to date…',
+        'Checking for new data…',
+        'Verifying nutrient info…',
+    ];
+
+    const messages = needsImport ? freshMessages : repeatMessages;
     let i = 0;
     const el = document.getElementById('import-msg');
+    const statusEl = document.getElementById('import-status');
+    const countEl = document.getElementById('result-count');
+    const noResultsEl = document.getElementById('no-results');
+
     const timer = setInterval(() => {
         i = (i + 1) % messages.length;
         el.textContent = messages[i];
     }, 600);
+
+    function done(imported) {
+        clearInterval(timer);
+        if (imported > 0) {
+            // New results found — snap to fresh page
+            window.location.reload();
+        } else {
+            // Nothing new — quietly hide the spinner, show counts
+            statusEl.style.display = 'none';
+            countEl.style.display = '';
+            if (noResultsEl) noResultsEl.style.display = '';
+        }
+    }
 
     fetch('{{ route('search.backfill', rawurlencode($query)) }}', {
         method: 'POST',
@@ -74,16 +95,8 @@
         },
     })
     .then(r => r.json())
-    .then(data => {
-        clearInterval(timer);
-        // Snap straight to fresh results
-        window.location.reload();
-    })
-    .catch(() => {
-        clearInterval(timer);
-        window.location.reload();
-    });
+    .then(data => done(data.imported ?? 0))
+    .catch(() => done(0));
 })();
 </script>
-@endif
 @endsection
