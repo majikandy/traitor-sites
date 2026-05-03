@@ -11,17 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('posts', function (Blueprint $table) {
+        Schema::create('ingredients', function (Blueprint $table) {
             $table->id();
-            $table->string('title');
+            $table->string('name');
             $table->string('slug')->unique();
-            $table->longText('content');
-            $table->text('excerpt')->nullable();
-            $table->date('published_at');
-            $table->enum('status', ['draft', 'published', 'stub'])->default('draft');
+            $table->enum('category', ['ingredient', 'dish']);
+            $table->string('unit')->comment('e.g. each, 400g loaf, per dish');
+            $table->string('emoji');
+            $table->boolean('is_in_index')->default(true);
+            $table->decimal('index_weight', 5, 4)->default(1.0000);
             $table->timestamps();
-
-            $table->index('published_at');
         });
     }
 
@@ -30,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('posts');
+        Schema::dropIfExists('ingredients');
     }
 };

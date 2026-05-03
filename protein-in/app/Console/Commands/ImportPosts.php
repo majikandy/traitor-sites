@@ -122,90 +122,58 @@ class ImportPosts extends Command
         '/2011/11/20/best-supplement-for-muscle-creatine-kre-alkalyn/',
     ];
 
+    // Generic site names to reject as titles
+    private const SITE_NAMES = ['protein in', 'protein-in', 'protein in |', 'protein-in |'];
+
     public function handle(): int
     {
         $total = count($this->urls);
-        $imported = 0;
+        $created = 0;
         $skipped = 0;
-        $failed = 0;
 
         foreach ($this->urls as $i => $path) {
             $slug = $this->slugFromPath($path);
             $publishedAt = $this->dateFromPath($path);
 
             if (!$slug || !$publishedAt) {
-                $this->warn("  skip (unparseable): {$path}");
                 $skipped++;
                 continue;
             }
 
             if (!$this->option('fresh') && Post::where('slug', $slug)->exists()) {
-                $this->line("  <fg=gray>exists:</> {$slug}");
                 $skipped++;
                 continue;
             }
 
-            $this->line("  [" . ($i + 1) . "/{$total}] Fetching {$path}");
+            $title = $this->titleFromSlug($slug);
 
-            $archiveUrl = "https://web.archive.org/web/{$publishedAt->format('Ymd')}120000/http://protein-in.com{$path}";
+            Post::updateOrCreate(['slug' => $slug], [
+                'title'        => $title,
+                'content'      => '',
+                'excerpt'      => '',
+                'published_at' => $publishedAt,
+                'status'       => 'stub',
+            ]);
 
-            try {
-                $response = Http::timeout(15)->get($archiveUrl);
-
-                if (!$response->ok()) {
-                    $this->warn("    404/error — skipping");
-                    $failed++;
-                    continue;
-                }
-
-                $html = $response->body();
-                $data = $this->extract($html, $slug, $publishedAt);
-
-                if (!$data['title'] || !$data['content']) {
-                    $this->warn("    could not extract content — skipping");
-                    $failed++;
-                    continue;
-                }
-
-                $post = Post::updateOrCreate(['slug' => $slug], [
-                    'title'        => $data['title'],
-                    'slug'         => $slug,
-                    'content'      => $data['content'],
-                    'excerpt'      => Str::limit(strip_tags($data['content']), 200),
-                    'published_at' => $publishedAt,
-                    'status'       => 'published',
-                ]);
-
-                // Attach categories and tags found in the page
-                if (!empty($data['categories'])) {
-                    $categoryIds = collect($data['categories'])->map(fn($s) =>
-                        Category::firstOrCreate(['slug' => $s], ['name' => Str::title(str_replace('-', ' ', $s))])->id
-                    );
-                    $post->categories()->sync($categoryIds);
-                }
-
-                if (!empty($data['tags'])) {
-                    $tagIds = collect($data['tags'])->map(fn($s) =>
-                        Tag::firstOrCreate(['slug' => $s], ['name' => Str::title(str_replace('-', ' ', $s))])->id
-                    );
-                    $post->tags()->sync($tagIds);
-                }
-
-                $this->info("    imported: {$data['title']}");
-                $imported++;
-
-                // Be polite to Wayback Machine
-                usleep(500000);
-
-            } catch (\Exception $e) {
-                $this->warn("    error: " . $e->getMessage());
-                $failed++;
-            }
+            $this->line("  [{$created}/{$total}] {$title}");
+            $created++;
         }
 
         $this->newLine();
-        $this->info("Done. Imported: {$imported} | Skipped: {$skipped} | Failed: {$failed}");
+        $this->info("Done. Created: {$created} | Skipped: {$skipped}");
         return 0;
+    }
+
+    private function titleFromSlug(string $slug): string
+    {
+        // Strip trailing numbers like "-2", "-56" that WordPress added for duplicates
+        $clean = preg_replace('/-\d+$/', '', $slug);
+        return Str::title(str_replace('-', ' ', $clean));
+    }
+
+    private function isSiteName(string $title): bool
+    {
+        return in_array(strtolower(trim($title)), self::SITE_NAMES);
     }
 
     private function slugFromPath(string $path): ?string
@@ -228,17 +196,20 @@ class ImportPosts extends Command
         // Strip Wayback Machine toolbar
         $html = preg_replace('/<div[^>]+id="wm-ipp[^"]*".*?<\/div>/is', '', $html);
 
-        // Title — try common WordPress selectors
+        // Title — try specific WordPress selectors first, fall back to generic
         $title = null;
         foreach ([
             '/<h1[^>]*class="[^"]*entry-title[^"]*"[^>]*>(.*?)<\/h1>/is',
             '/<h1[^>]*class="[^"]*post-title[^"]*"[^>]*>(.*?)<\/h1>/is',
-            '/<h1[^>]*>(.*?)<\/h1>/is',
-            '/<title>(.*?)(?:\s*[|\-–].*)?<\/title>/is',
+            '/<h2[^>]*class="[^"]*entry-title[^"]*"[^>]*>(.*?)<\/h2>/is',
+            '/<title>([^<|–\-]+)/is',
         ] as $pattern) {
             if (preg_match($pattern, $html, $m)) {
-                $title = trim(strip_tags($m[1]));
-                if ($title) break;
+                $candidate = trim(strip_tags($m[1]));
+                if ($candidate && !$this->isSiteName($candidate)) {
+                    $title = $candidate;
+                    break;
+                }
             }
         }
 
@@ -270,9 +241,7 @@ class ImportPosts extends Command
 
     private function cleanContent(string $html): string
     {
-        // Remove scripts, styles, iframes, Wayback banners
         $html = preg_replace('/<(script|style|iframe|noscript)[^>]*>.*?<\/\1>/is', '', $html);
-        // Remove Wayback Machine rewrite attributes
         $html = preg_replace('/\s(src|href)="\/web\/\d+\/(http[^"]+)"/i', ' $1="$2"', $html);
         return trim($html);
     }

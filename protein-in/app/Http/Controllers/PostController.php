@@ -17,7 +17,7 @@ class PostController extends Controller
 
     public function show(string $year, string $month, string $day, string $slug)
     {
-        $post = Post::published()
+        $post = Post::whereIn('status', ['published', 'stub'])
             ->whereYear('published_at', $year)
             ->whereMonth('published_at', $month)
             ->whereDay('published_at', $day)
@@ -25,6 +25,14 @@ class PostController extends Controller
             ->firstOrFail();
 
         $post->load('categories', 'tags');
-        return view('posts.show', compact('post'));
+
+        // Related posts — same era, exclude current
+        $related = Post::whereIn('status', ['published', 'stub'])
+            ->where('slug', '!=', $slug)
+            ->inRandomOrder()
+            ->limit(6)
+            ->get();
+
+        return view('posts.show', compact('post', 'related'));
     }
 }
