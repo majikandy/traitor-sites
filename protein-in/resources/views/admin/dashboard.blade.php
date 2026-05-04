@@ -17,13 +17,19 @@
 </div>
 
 <h2>Legacy posts</h2>
-<p style="color:#78716c;font-size:0.875rem;margin-bottom:0.75rem;">102 known URLs from the original protein-in.com (2010–2011). Fetches each from Wayback Machine — takes several minutes, must be run via SSH.</p>
+<p style="color:#78716c;font-size:0.875rem;margin-bottom:0.75rem;">104 articles — seeded from posts.json. Safe to re-run, uses updateOrCreate.</p>
+<form method="POST" action="{{ route('admin.seed-posts') }}">
+    @csrf
+    <button type="submit" class="btn-primary">Seed all 104 posts from posts.json</button>
+</form>
 
-<div style="background:#1c1917;color:#d6d3d1;font-family:monospace;font-size:0.85rem;padding:0.75rem 1rem;border-radius:6px;margin-bottom:0.75rem;">
-    php artisan posts:import
+@if(session('seed_posts_result'))
+<div class="import-result" style="margin-top:0.75rem;">
+    <pre>{{ session('seed_posts_result') }}</pre>
 </div>
+@endif
 
-<p style="color:#78716c;font-size:0.8rem;margin-bottom:0.75rem;">Once imported, save to <code>posts.json</code> so they survive a fresh deploy:</p>
+<p style="color:#78716c;font-size:0.8rem;margin-top:0.75rem;margin-bottom:0.75rem;">Export current DB posts back to posts.json:</p>
 <form method="POST" action="{{ route('admin.export-posts') }}">
     @csrf
     <button type="submit" class="btn-import">Save to posts.json (seeder backup)</button>
