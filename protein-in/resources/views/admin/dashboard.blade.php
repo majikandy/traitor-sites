@@ -16,7 +16,7 @@
     </div>
 </div>
 
-<h2>Legacy posts</h2>
+<h2>Posts</h2>
 <p style="color:#78716c;font-size:0.875rem;margin-bottom:0.75rem;">104 articles — seeded from posts.json. Safe to re-run, uses updateOrCreate.</p>
 <form method="POST" action="{{ route('admin.seed-posts') }}">
     @csrf

@@ -50,7 +50,6 @@ Route::prefix('admin')->name('admin.')->middleware(\App\Http\Middleware\AdminAut
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/searches', [SearchQueryController::class, 'index'])->name('searches');
     Route::post('/import', [FoodImportController::class, 'store'])->name('import');
-    Route::post('/import-posts', [PostImportController::class, 'store'])->name('import-posts');
     Route::post('/seed-posts', [PostImportController::class, 'seed'])->name('seed-posts');
     Route::post('/export-posts', [PostExportController::class, 'store'])->name('export-posts');
     Route::get('/migrations', [MigrationsController::class, 'index'])->name('migrations');
