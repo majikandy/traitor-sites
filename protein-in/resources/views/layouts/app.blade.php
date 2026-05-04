@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Protein-In — Find the protein in any food')</title>
     <meta name="description" content="@yield('description', 'Search any food and find out how much protein it contains. The protein-first nutrition database.')">
+    <meta property="og:title" content="@yield('title', 'Protein-In — Find the protein in any food')">
+    <meta property="og:description" content="@yield('description', 'Search any food and find out how much protein it contains. The protein-first nutrition database.')">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Protein-In">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="@yield('title', 'Protein-In — Find the protein in any food')">
+    <meta name="twitter:description" content="@yield('description', 'Search any food and find out how much protein it contains. The protein-first nutrition database.')">
+    @if(config('services.google.site_verification'))
+    <meta name="google-site-verification" content="{{ config('services.google.site_verification') }}">
+    @endif
+    <link rel="canonical" href="{{ url()->current() }}">
     <link rel="icon" type="image/png" href="/favicon-32x32.png">
     <link rel="sitemap" type="application/xml" href="/sitemap.xml">
     <style>

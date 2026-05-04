@@ -12,7 +12,7 @@ class SitemapController extends Controller
     public function index()
     {
         $foods      = Food::orderBy('updated_at', 'desc')->get(['slug', 'updated_at']);
-        $posts      = Post::published()->orderBy('published_at', 'desc')->get(['slug', 'published_at']);
+        $posts      = Post::whereIn('status', ['published', 'stub'])->orderBy('published_at', 'desc')->get(['slug', 'published_at']);
         $categories = Category::all(['slug', 'updated_at']);
         $tags       = Tag::all(['slug', 'updated_at']);
 
